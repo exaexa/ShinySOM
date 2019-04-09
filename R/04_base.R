@@ -1,0 +1,84 @@
+
+library(shiny)
+library(shinyFiles)
+library(shinyWidgets)
+
+ui <- fluidPage(
+  titlePanel("ShinySOM"),
+  fluidRow(
+    column(2,
+      uiOutput("selectPage")
+    ),
+    column(10,
+      uiOutput("mainPage")
+    )
+  )
+)
+
+datasetNameValid <- function(name) {
+  ((regexpr(text=name, pattern='^[a-zA-Z0-9 ,._@#%^&()-]*$')==1) && (nchar(name)>2))
+}
+
+datasetExists <- function(workspace, name) {
+  name %in% workspace$datasets
+}
+
+getDatasetPath <- function() {
+  options('ShinySOM.Datasets')$ShinySOM.Datasets
+}
+
+listDatasets <- function() {
+  tools::file_path_sans_ext(dir(path=getDatasetPath(), pattern='.*\\.shinysom'))
+}
+
+saveDataset <- function(workspace, name, data) {
+  if(!(name %in% workspace$datasets))
+    workspace$datasets <- sort(c(workspace$datasets, name))
+  saveRDS(data, paste0(getDatasetPath(),name,'.shinysom'))
+}
+
+loadDataset <- function(name) {
+  readRDS(paste0(getDatasetPath(),name,'.shinysom'))
+}
+
+server <- function(input, output) {
+  workspace <- reactiveValues(datasets=listDatasets(), page='__foreign__')
+
+  foreign <- reactiveValsForeign()
+  diffsom <- reactiveValsDiffsom()
+
+  output$selectPage <- renderUI({
+    renderMenu(workspace)
+  })
+
+  output$mainPage <- renderUI({
+    if(workspace$page=='__dsCreate__') uiOutput("dsCreate")
+    # else if(workspace$page=='__save__') uiOutput("saving")
+    else if(workspace$page=='__foreign__') uiOutput("foreign")
+    else uiOutput("diffsom")
+  })
+
+  #output$saving <- renderUI({renderSaving()})
+  output$foreign <- renderUI({renderForeign(foreign)})
+  output$diffsom <- renderUI({renderDiffsom()})
+
+  serveMenu(workspace, diffsom, input, output)
+  serveForeign(foreign, input, output)
+  serveDsCreate(workspace, input, output)
+  serveDiffsom(workspace, diffsom, input, output)
+}
+
+#' Run ShinySOM in browser
+#' @export
+ShinySOM <- function(
+    dataset.dir='datasets',
+    roots=c(`Session storage`='data'),
+    ...) {
+  options(ShinySOM.Datasets=paste0(dataset.dir, '/'))
+  options(ShinySOM.foreignRoots=roots)
+  options(shiny.maxRequestSize=100*2^20)
+  shinyApp(ui=ui, server=server, ...)
+}
+
+# how to run this:
+#ShinySOM(options=list(port=8087))
