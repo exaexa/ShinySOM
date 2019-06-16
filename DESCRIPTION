@@ -1,0 +1,18 @@
+Package: ShinySOM
+Version: 0.1
+Date: 2019-04-03
+Title: Shiny-based DiffSOM workflow wrapper
+Authors@R: c(person("Mirek", "Kratochvil",
+                    role = c("aut", "cre"),
+                    email = "exa.exa@gmail.com"))
+Author: Mirek Kratochvil
+Maintainer: Mirek Kratochvil <exa.exa@gmail.com>
+Depends:
+    R (>= 3.2), EmbedSOM, DiffSOM, tidyr, ggplot2, cowplot, tools, shiny, shinyFiles, shinyWidgets
+Description: Allows executing the DiffSOM workflow in a nice, user-oriented web
+    interface. Particularly useful for analyzing data in cloud.
+License: GPL (>= 3)
+LazyData: true
+URL: https://bioinfo.uochb.cas.cz/embedsom
+Encoding: UTF-8
+RoxygenNote: 6.1.1
