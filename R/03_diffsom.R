@@ -26,14 +26,43 @@ reactiveValsDiffsom <- function()
     annotation=NULL
   )
 
+# TODO: erase this when it gets exported from DiffSOM
+ds_hclust <- function(codes, data, importance=NULL, mapping, k=7){
+    # This code was proudly adapted from FlowSOM
+    d <- stats::dist(codes, method = "euclidean")
+    fit <- stats::hclust(d, method = "ward.D2")
+    stats::cutree(fit, k=k)
+    #end of FlowSOM copy
+}
+
+ds_kmeans <- function(codes, data, importance=NULL, mapping, k=7){
+    kmeans(x=codes, centers=k)$cluster
+}
+
+ds_consensus <- function(codes, data, importance=NULL, mapping, k=7){
+    seed <- sample(1000000000,1) #force "normal" behavior
+    # another FlowSOM copy begins
+    results <- suppressMessages(ConsensusClusterPlus::ConsensusClusterPlus(
+                                t(codes),
+                                maxK=k, reps=100, pItem=0.9, pFeature=1, 
+                                title=tempdir(), plot="pdf", verbose=FALSE,
+                                clusterAlg="hc",
+                                distance="euclidean",
+                                seed=seed
+    ))
+    results[[k]]$consensusClass
+    # FlowSOM copy ends
+}
+#TODO: erase ends here
+
 #
 # constants
 #
 
 CLUSTER_METHODS=list(
-  HCA=DiffSOM::ds_hclust,
-  kMeans=DiffSOM::ds_kmeans,
-  Consensus=DiffSOM::ds_consensus
+  HCA=ds_hclust,
+  kMeans=ds_kmeans,
+  Consensus=ds_consensus
 )
 
 #
