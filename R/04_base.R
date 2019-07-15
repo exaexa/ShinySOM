@@ -34,11 +34,11 @@ listDatasets <- function() {
 saveDataset <- function(workspace, name, data) {
   if(!(name %in% workspace$datasets))
     workspace$datasets <- sort(c(workspace$datasets, name))
-  saveRDS(data, paste0(getDatasetPath(),name,'.shinysom'))
+  saveRDS(data, paste0(getDatasetPath(),'/',name,'.shinysom'))
 }
 
 loadDataset <- function(name) {
-  readRDS(paste0(getDatasetPath(),name,'.shinysom'))
+  readRDS(paste0(getDatasetPath(),'/',name,'.shinysom'))
 }
 
 server <- function(input, output) {

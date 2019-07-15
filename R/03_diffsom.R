@@ -437,7 +437,7 @@ diffsomRenderGating <- function(ds) {
 diffsomRenderExport <- function(ds) {
   div(
     h3("Export population statistics"),
-    if(is.null(ds$annotation)||is.null(ds$clust)) p("Cluster and annotate the populations first.")
+    if(is.null(ds$annotation) || is.null(ds$clust)) p("Cluster and annotate the populations first.")
     else shinySaveButton("dsExportPops", "Population cell counts CSV", "Save a the population cell counts", filename='populations.csv'),
     h3("Export DiffSOM objects"),
     if(is.null(ds$map)) p("Compute SOM for exporting it first")
