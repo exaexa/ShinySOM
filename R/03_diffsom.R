@@ -402,6 +402,7 @@ diffsomRenderClusterEmbedding <- function(ds) {
 
 #
 # Analysis
+# TODO: add IFs for unknown stuff
 #
 
 diffsomRenderAnalysis <- function(ds) {
@@ -409,6 +410,38 @@ diffsomRenderAnalysis <- function(ds) {
     tabPanel('Compare files', uiOutput('diffsomAnalysisDiff')),
     tabPanel('Significance plots', uiOutput('diffsomAnalysisSignificance'))
   )
+}
+
+diffsomRenderADiff <- function(ds) {
+  fluidRow(
+    column(2,
+      pickerInput('dsADiffFilesLeft',
+        'Left',
+        choices=ds$files,
+        multiple=T),
+      pickerInput('dsADiffFilesRight',
+        'Right',
+        choices=ds$files,
+        multiple=T),
+      pickerInput('dsADiffColor',
+        'Color',
+        choices=c('(density)','(cluster)','(file)',unname(ds$prettyColnames)),
+        multiple=F,
+        selected='(density)'),
+      sliderInput('dsADiffCex', "Point size", value=0.5, min=0.1, max=2),
+      sliderInput('dsADiffAlpha', "Alpha", value=0.3, min=0.01, max=1)
+    ),
+    column(4,
+      plotOutput('plotDsADiffL', width='30em', height='30em')
+    ),
+    column(4,
+      plotOutput('plotDsADiffR', width='30em', height='30em')
+    )
+  )
+}
+
+diffsomRenderASignificance <- function(ds) {
+
 }
 
 #
@@ -659,6 +692,38 @@ serveDiffsom <- function(ws, ds, input, output) {
 
   output$diffsomAnalysis <- renderUI({
     diffsomRenderAnalysis(ds)
+  })
+
+  output$diffsomAnalysisDiff <- renderUI({
+    diffsomRenderADiff(ds)
+  })
+
+  output$diffsomAnalysisSignificance <- renderUI({
+    diffsomRenderASignificance(ds)
+  })
+
+  output$plotDsADiffL <- renderPlot({
+    if(length(input$dsADiffFilesLeft)>0)
+      plotDsADiff(
+        input$dsADiffFilesLeft,
+        input$dsADiffColor,
+        ds$files, ds$data, ds$cellFile, ds$e,
+        ds$prettyColnames,
+        ds$annotation[ds$clust[ds$map$mapping[,1]]],
+        input$dsADiffAlpha,
+        input$dsADiffCex)
+  })
+
+  output$plotDsADiffR <- renderPlot({
+    if(length(input$dsADiffFilesRight)>0)
+      plotDsADiff(
+        input$dsADiffFilesRight,
+        input$dsADiffColor,
+        ds$files, ds$data, ds$cellFile, ds$e,
+        ds$prettyColnames,
+        ds$annotation[ds$clust[ds$map$mapping[,1]]],
+        input$dsADiffAlpha,
+        input$dsADiffCex)
   })
 
   #
