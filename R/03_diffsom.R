@@ -305,10 +305,10 @@ diffsomRenderEmbedEView <- function(ds) {
     plotOutput('plotDsEmbedEDensity', width='30em', height='25em'),
     h3("Expressions"),
     pickerInput('dsEmbedEViewCol', "Column",
-      choices=isolate(ds$colsToUse),
+      choices=unname(ds$prettyColnames),
       options=list(size=10),
       multiple=F,
-      selected=isolate(ds$colsToUse[1])
+      selected=ds$prettyColnames[1]
       ),
     sliderInput('dsEmbedEExprCex', "Point size", value=0.5, min=0.1, max=2),
     sliderInput('dsEmbedEExprAlpha', "Alpha", value=0.3, min=0.01, max=1),
@@ -337,14 +337,14 @@ diffsomRenderClustering <- function(ds) {
       h3("Expressions in clusters"),
       pickerInput("dsClusterExpressionCols",
         "Columns to display",
-        choices=ds$colsToUse,
+        choices=unname(ds$prettyColnames),
         options=list(size=10),
         multiple=T),
       uiOutput("uiDsClusterExpressions"),
       h3("Embedded clusters"),
       pickerInput("dsClusterEmbedCol",
         "Columns to display",
-        choices=c("(show clusters)", ds$colsToUse),
+        choices=c("(show clusters)", unname(ds$prettyColnames)),
         options=list(size=10),
         selected="(show clusters)",
         multiple=F),
@@ -448,7 +448,6 @@ diffsomRenderExport <- function(ds) {
     shinySaveButton("dsExportCSV", "Export CSV", "Save CSV export", filename='export.csv')
   )
 }
-
 
 #
 # Server

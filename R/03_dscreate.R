@@ -126,11 +126,7 @@ dsCreateDoLoad <- function(name, fs, params, subsample, colsToLoad, colsToTransf
 
   nds$files <- fns #TODO: normalize the names a bit
 
-  nds$cellFile <- ds$fs$data[,'File']
-  if(!is.null(ds$fs$scaled.scale)) {
-    nds$cellFile <- nds$cellFile * ds$fs$scaled.scale['File'] + ds$fs$scaled.center['File']+0.001
-  }
-  nds$cellFile <- as.integer(nds$cellFile)
+  nds$cellFile <- DiffSOM::CellFile(ds)
 
   colSel <- findColIds(colsToLoad, prettyCols)
 
