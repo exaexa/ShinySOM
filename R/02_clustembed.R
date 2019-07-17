@@ -19,7 +19,8 @@ plotClustEmbed <- function(e, data, annotation, cex, alpha) {
         y=EmbedSOM2,
         color=annotation)) +
     ggplot2::annotate("text", x=apos$x, y=apos$y, label=apos$name) +
-    ggplot2::guides(color=ggplot2::guide_legend(override.aes=list(size=4, alpha=1)))
+    ggplot2::guides(color=ggplot2::guide_legend(override.aes=list(size=4, alpha=1))) +
+    cowplot::theme_cowplot()
   else 
     ggplot2::ggplot(data.frame(EmbedSOM1=e[,1], EmbedSOM2=e[,2], Value=data)) +
     ggplot2::geom_point(
@@ -29,5 +30,6 @@ plotClustEmbed <- function(e, data, annotation, cex, alpha) {
         y=EmbedSOM2,
         color=Value)) +
     EmbedSOM::ExpressionGradient() +
-    ggplot2::annotate("text", x=apos$x, y=apos$y, label=apos$name)
+    ggplot2::annotate("text", x=apos$x, y=apos$y, label=apos$name) +
+    cowplot::theme_cowplot()
 }

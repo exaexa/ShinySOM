@@ -23,5 +23,6 @@ plotSOMOverview <- function(xdim, ydim, codevals, datavals, mapping) {
     shape=21,
     color='gray') +
   ggplot2::scale_size_continuous(guide=F) +
-  ggplot2::scale_fill_gradientn(colors=EmbedSOM::ExpressionPalette(32), guide=F)
+  ggplot2::scale_fill_gradientn(colors=EmbedSOM::ExpressionPalette(32), guide=F) +
+  cowplot::theme_cowplot()
 }

@@ -13,7 +13,8 @@ plotClustExpr <- function(cols, data, annotation) {
     ggplot2::aes(
       x=Value,
       color=Annotation)) +
-  ggplot2::facet_grid(Column ~ ., scales='free')
+  ggplot2::facet_grid(Column ~ ., scales='free') +
+  cowplot::theme_cowplot()
   }
 
   ggplot2::ggplot(x) +
@@ -23,5 +24,6 @@ plotClustExpr <- function(cols, data, annotation) {
     ggplot2::aes(
       x=Value,
       color=Annotation)) +
-  ggplot2::facet_grid(Column ~ ., scales='free')
+  ggplot2::facet_grid(Column ~ ., scales='free') +
+  cowplot::theme_cowplot()
 }
