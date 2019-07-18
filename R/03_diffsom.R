@@ -402,7 +402,6 @@ diffsomRenderClusterEmbedding <- function(ds) {
 
 #
 # Analysis
-# TODO: add IFs for unknown stuff
 #
 
 diffsomRenderAnalysis <- function(ds) {
@@ -413,7 +412,9 @@ diffsomRenderAnalysis <- function(ds) {
 }
 
 diffsomRenderADiff <- function(ds) {
-  fluidRow(
+  if(is.null(ds$e))
+    p("Embed the population first")
+  else fluidRow(
     column(2,
       pickerInput('dsADiffFilesLeft',
         'Left',
@@ -425,7 +426,10 @@ diffsomRenderADiff <- function(ds) {
         multiple=T),
       pickerInput('dsADiffColor',
         'Color',
-        choices=c('(density)','(cluster)','(file)',unname(ds$prettyColnames)),
+        choices=c('(density)',
+                  if(is.null(ds$annotation)) NULL else '(cluster)',
+                  '(file)',
+                  unname(ds$prettyColnames)),
         multiple=F,
         selected='(density)'),
       sliderInput('dsADiffCex', "Point size", value=0.5, min=0.1, max=2),
@@ -440,8 +444,38 @@ diffsomRenderADiff <- function(ds) {
   )
 }
 
+#TODO: paired possibility (any reasonable way to assign the pairs in Shiny?)
 diffsomRenderASignificance <- function(ds) {
-
+  if(is.null(ds$e))
+    p("Embed the population first")
+  else fluidRow(
+    column(3,
+      pickerInput('dsASigControl',
+        'Control sample group',
+        choices=ds$files,
+        multiple=T),
+      pickerInput('dsASigExperiment',
+        'Experiment sample group',
+        choices=ds$files,
+        multiple=T),
+      selectInput('dsASigGran', label='Granularity',
+        choices=c(
+          'SOM',
+          if(is.null(ds$clust)) NULL else 'Metaclusters',
+          if(is.null(ds$annotation)) NULL else 'Annotated clusters'),
+        selected='SOM',
+        multiple=F),
+      sliderInput('dsASigPow', "p-value transform", value=10, min=0.1, max=30),
+      sliderInput('dsASigCex', "Point size", value=0.5, min=0.1, max=2),
+      sliderInput('dsASigAlpha', "Alpha", value=0.3, min=0.01, max=1)
+    ),
+    column(7,
+      plotOutput('plotDsASig', width='50em', height='50em'),
+      p('Blue = significantly less cells in experiment group.'),
+      p('Orange = significantly more cells in experiment group.'),
+      p('Gray = no significant result.')
+    )
+  )
 }
 
 #
@@ -724,6 +758,18 @@ serveDiffsom <- function(ws, ds, input, output) {
         ds$annotation[ds$clust[ds$map$mapping[,1]]],
         input$dsADiffAlpha,
         input$dsADiffCex)
+  })
+
+  output$plotDsASig <- renderPlot({
+    if(length(input$dsASigControl)>0 && length(input$dsASigExperiment)>0)
+      plotDsASig(
+        input$dsASigControl,
+        input$dsASigExperiment,
+        ds$files, ds$cellFile, ds$e,
+        input$dsASigGran, ds$map$mapping[,1], ds$clust, ds$annotation,
+        input$dsASigPow,
+        input$dsASigCex,
+        input$dsASigAlpha)
   })
 
   #
