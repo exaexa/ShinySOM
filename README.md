@@ -10,10 +10,12 @@ devtools.install_github('exaexa/ShinySOM')
 
 Before running, you need to create some space for data:
 
-```sh
-mkdir data      # scratch space for the user
-mkdir datasets  # dataset storage
+```r
+dir.create('data')      # scratch space for the user files
+dir.create('datasets')  # dataset storage
 ```
+
+(the locations are configurable, these are the default directories)
 
 Running is then easy:
 
