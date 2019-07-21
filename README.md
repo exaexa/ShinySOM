@@ -3,9 +3,9 @@
 Installation:
 
 ```r
-devtools.install_github('exaexa/EmbedSOM')
-devtools.install_github('exaexa/DiffSOM')
-devtools.install_github('exaexa/ShinySOM')
+devtools::install_github('exaexa/EmbedSOM')
+devtools::install_github('exaexa/DiffSOM')
+devtools::install_github('exaexa/ShinySOM')
 ```
 
 Before running, you need to create some space for data:
