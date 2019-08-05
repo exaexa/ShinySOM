@@ -114,25 +114,26 @@ dsCreateDoLoad <- function(name, fs, params, subsample, colsToLoad, colsToTransf
 
   fns <- dsCreateFiles(fs)
 
-  ds <- DiffSOM::Load(files=fns,
+  fs <- FlowSOM::ReadInput(
+    FlowSOM::AggregateFlowFrames(
+      fns,
+      cTotal=if('subsample' %in% params) subsample else NULL,),
     scale='scale' %in% params,
     transform='transform' %in% params,
     compensate='compensate' %in% params,
-    toTransform=findColIds(colsToTransform, prettyCols),
-    cells=if('subsample' %in% params) subsample else NULL
-  )
+    toTransform=findColIds(colsToTransform, prettyCols))
 
   nds <- list()
 
   nds$files <- fns #TODO: normalize the names a bit
 
-  nds$cellFile <- DiffSOM::CellFile(ds)
+  nds$cellFile <- as.numeric(factor(fs$data[,'File']))
 
   colSel <- findColIds(colsToLoad, prettyCols)
 
-  nds$data <- ds$fs$data[,colSel]
+  nds$data <- fs$data[,colSel]
 
-  nds$prettyColnames <- ds$fs$prettyColnames[colSel]
+  nds$prettyColnames <- fs$prettyColnames[colSel]
 
   saveDataset(workspace, name, nds)
 }

@@ -4,7 +4,6 @@ Installation:
 
 ```r
 devtools::install_github('exaexa/EmbedSOM')
-devtools::install_github('exaexa/DiffSOM')
 devtools::install_github('exaexa/ShinySOM')
 ```
 
