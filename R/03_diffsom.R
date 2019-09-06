@@ -1,6 +1,6 @@
 
 #
-# DiffSOM core values, dataset loading/saving
+# DiffSOM-style core values, dataset loading/saving
 #
 
 reactiveValsDiffsom <- function()
@@ -182,7 +182,7 @@ diffsomRenderOverviewExprs <- function(ds) {
         multiple=T
       )
     ),
-    column(7,
+    column(9,
       uiOutput("plotDsOverviewExprsUi")
     )
   )
@@ -230,7 +230,7 @@ diffsomRenderOverviewDots <- function(ds) {
         multiple=F
       )
     ),
-    column(7,
+    column(9,
       uiOutput("plotDsOverviewDotsUi")
     )
   )
@@ -245,7 +245,7 @@ diffsomRenderEmbedding <- function(ds) {
   names(choices) <- choices
 
   fluidRow(
-    column(4,
+    column(3,
       h3("SOM"),
       pickerInput('dsEmbedColsToUse', "Columns to use",
         choices=choices,
@@ -263,7 +263,7 @@ diffsomRenderEmbedding <- function(ds) {
       actionButton('dsEmbedDoSOM', "Compute SOM"),
       uiOutput('uiDsEmbedParams')
     ),
-    column(6,
+    column(9,
       h3("SOM view"),
       uiOutput('uiDsEmbedSOMView'),
       h3("Embedding view"),
@@ -301,18 +301,15 @@ diffsomRenderEmbedSOMView <- function(ds) {
 diffsomRenderEmbedEView <- function(ds) {
   if(is.null(ds$e)) p("Compute the embedding first")
   else div(
-    h3("Density"),
-    plotOutput('plotDsEmbedEDensity', width='30em', height='25em'),
-    h3("Expressions"),
     pickerInput('dsEmbedEViewCol', "Column",
-      choices=unname(ds$prettyColnames),
+      choices=c('(show density)', unname(ds$prettyColnames)),
       options=list(size=10),
       multiple=F,
-      selected=ds$prettyColnames[1]
+      selected='(show density)'
       ),
-    sliderInput('dsEmbedEExprCex', "Point size", value=0.5, min=0.1, max=2),
+    sliderInput('dsEmbedEExprCex', "Point size", value=1, min=0, max=5, step=.1),
     sliderInput('dsEmbedEExprAlpha', "Alpha", value=0.3, min=0.01, max=1),
-    plotOutput("plotDsEmbedEExpr", width='64em', height='56em')
+    plotOutput("plotDsEmbedEExpr", width='56em', height='56em')
   )
 }
 
@@ -323,7 +320,7 @@ diffsomRenderEmbedEView <- function(ds) {
 diffsomRenderClustering <- function(ds) {
   if(is.null(ds$map)) p("Compute the SOM first")
   else fluidRow(
-    column(4,
+    column(3,
       h3("Clustering"),
       selectInput("dsClusterMethod", label="Clustering algorithm", choices=names(CLUSTER_METHODS), multiple=F),
       numericInput("dsClusterNClust", label="Number of clusters", value=10, min=2, max=30, step=1),
@@ -333,7 +330,7 @@ diffsomRenderClustering <- function(ds) {
       uiOutput("uiDsClusterAnnotate"),
       uiOutput("uiDsClusterAnnotateSummary")
     ),
-    column(6,
+    column(9,
       h3("Expressions in clusters"),
       pickerInput("dsClusterExpressionCols",
         "Columns to display",
@@ -349,7 +346,7 @@ diffsomRenderClustering <- function(ds) {
         selected="(show clusters)",
         multiple=F),
       uiOutput("uiDsClusterEmbedding"),
-      sliderInput('dsClustEmbedCex', "Point size", value=0.5, min=0.1, max=2),
+      sliderInput('dsClustEmbedCex', "Point size", value=1, min=0, max=5, step=.1),
       sliderInput('dsClustEmbedAlpha', "Alpha", value=0.3, min=0.01, max=1)
     )
   )
@@ -435,10 +432,10 @@ diffsomRenderADiff <- function(ds) {
       sliderInput('dsADiffCex', "Point size", value=0.5, min=0.1, max=2),
       sliderInput('dsADiffAlpha', "Alpha", value=0.3, min=0.01, max=1)
     ),
-    column(4,
+    column(5,
       plotOutput('plotDsADiffL', width='30em', height='30em')
     ),
-    column(4,
+    column(5,
       plotOutput('plotDsADiffR', width='30em', height='30em')
     )
   )
@@ -469,7 +466,7 @@ diffsomRenderASignificance <- function(ds) {
       sliderInput('dsASigCex', "Point size", value=0.5, min=0.1, max=2),
       sliderInput('dsASigAlpha', "Alpha", value=0.3, min=0.01, max=1)
     ),
-    column(7,
+    column(9,
       plotOutput('plotDsASig', width='50em', height='50em'),
       p('Blue = significantly less cells in experiment group.'),
       p('Orange = significantly more cells in experiment group.'),
@@ -652,14 +649,11 @@ serveDiffsom <- function(ws, ds, input, output) {
     diffsomRenderEmbedEView(ds)
   })
 
-  output$plotDsEmbedEDensity <- renderPlot({
-    plotEmbedDensity(ds$e)
-  })
-
   output$plotDsEmbedEExpr <- renderPlot({
     plotEmbedExpr(
       ds$e,
-      ds$data[,findColIds(input$dsEmbedEViewCol, ds$prettyColnames)],
+      if(input$dsEmbedEViewCol=='(show density)') NULL
+      else ds$data[,findColIds(input$dsEmbedEViewCol, ds$prettyColnames)],
       input$dsEmbedEExprCex,
       input$dsEmbedEExprAlpha
     )

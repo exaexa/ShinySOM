@@ -1,4 +1,6 @@
 
+#TODO: this needs to be completely rethinked. Better perhaps have a selector for showing files separately? Certainly use PlotEmbed for better density.
+
 plotOverviewDots <- function(data, files, cellFile, prettyColnames, sepFiles, alpha, count, horiz, vert) {
   x <- findColIds(horiz, prettyColnames)
   y <- findColIds(vert, prettyColnames)

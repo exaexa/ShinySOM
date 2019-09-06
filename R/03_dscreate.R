@@ -4,42 +4,24 @@
 #
 
 renderDsCreate <- function(dsCreate) {
-  res <- tagList()
+  div(
+    h1('Create datasets'),
 
-  res <- tagAppendChild(res,
-    h1('Create datasets')
-  )
-
-  res <- tagAppendChild(res,
-    h3('1. Select files')
-  )
-
-  res <- tagAppendChild(res, p(
-    shinyFilesButton('dsCreateFiles',
+    h3('1. Select files'),
+    p(
+      shinyFilesButton('dsCreateFiles',
       'Select dataset files',
       'Choose FCS files',
       multiple=T),
-    uiOutput('dsCreateFileNumber')
-    )
-  )
+      uiOutput('dsCreateFileNumber')
+    ),
 
-  res <- tagAppendChild(res,
-    h3('2. Scale, Transform, Sample')
-  )
+    h3('2. Scale, Transform, Sample'),
+    uiOutput('dsCreateNormalize'),
 
-  res <- tagAppendChild(res,
-    uiOutput('dsCreateNormalize')
+    h3('3. Create dataset'),
+    uiOutput('dsCreateFinalize'),
   )
-
-  res <- tagAppendChild(res,
-    h3('3. Create dataset')
-  )
-
-  res <- tagAppendChild(res,
-    uiOutput('dsCreateFinalize')
-  )
-
-  res
 }
 
 renderDsCreateFileNum <- function(fs) {
@@ -55,10 +37,10 @@ renderDsCreateNormalize <- function(fs) {
     res <- tagList()
 
     res <- tagAppendChild(res,
-      fluidRow(column(3,
+      fluidRow(column(4,
           uiOutput('dsCreateLoadColsUi')
         ),
-        column(3, div(
+        column(4, div(
           checkboxGroupInput('dsCreateParams', 'Loading parameters', 
             c(
               'Scale'='scale',
@@ -69,7 +51,7 @@ renderDsCreateNormalize <- function(fs) {
           ),
           numericInput('dsCreateSubsample', 'Number of cells to sample', min=1, step=1, value=100000)
         )),
-        column(3,
+        column(4,
           uiOutput('dsCreateToTransformUi')
         )
       )

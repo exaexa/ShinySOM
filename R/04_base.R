@@ -4,15 +4,11 @@ library(shinyFiles)
 library(shinyWidgets)
 
 ui <- fluidPage(
-  titlePanel("ShinySOM"),
   fluidRow(
-    column(2,
-      uiOutput("selectPage")
-    ),
-    column(10,
-      uiOutput("mainPage")
-    )
-  )
+    column(3, h1("ShinySOM")),
+    column(9, uiOutput("selectPage"))
+  ),
+  uiOutput("mainPage")
 )
 
 datasetNameValid <- function(name) {

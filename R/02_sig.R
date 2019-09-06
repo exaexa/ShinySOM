@@ -62,8 +62,5 @@ plotDsASig <- function(control, experiment, files, cellFile, e,
 	colv[colv<0] <- 0
 	colors <- rgb(colv[cl,1], colv[cl,2], colv[cl,3], colv[cl,4])
 
-  ggplot2::ggplot(data.frame(EmbedSOM1=e[,1], EmbedSOM2=e[,2], Color=colors)) +
-  ggplot2::geom_point(shape=16, size=cex, ggplot2::aes(x=EmbedSOM1, y=EmbedSOM2, color=Color)) +
-  ggplot2::scale_color_identity(guide=F) +
-  cowplot::theme_cowplot()
+  EmbedSOM::PlotEmbed(e, col=colors, alpha=alpha, cex=cex, plotf=scattermoreplot, frame.plot=F)
 }
