@@ -20,7 +20,7 @@ renderDsCreate <- function(dsCreate) {
     uiOutput('dsCreateNormalize'),
 
     h3('3. Create dataset'),
-    uiOutput('dsCreateFinalize'),
+    uiOutput('dsCreateFinalize')
   )
 }
 

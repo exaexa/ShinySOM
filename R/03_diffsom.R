@@ -154,86 +154,67 @@ renderDiffsom <- function() {
   )
 }
 
-diffsomRenderOverview <- function(ds) {
-  tabsetPanel(type='tabs',
-    tabPanel('Expressions in files', uiOutput('diffsomOverviewExprs')),
-    tabPanel('Dot plots', uiOutput('diffsomOverviewDots'))
-  )
-}
-
 #
 # Overview / Expressions
-#
+# 
+# TODO: follow this:
+# https://stackoverflow.com/questions/8545035/scatterplot-with-marginal-histograms-in-ggplot2#8545618
 
-diffsomRenderOverviewExprs <- function(ds) {
+diffsomRenderOverview <- function(ds) {
   choices <- ds$prettyColnames
   names(choices) <- choices
+
+  # Keep this in sync with 02_overview.R!
+
+  extraDims <- c(
+    '(File)',
+    if(is.null(ds$clust)) NULL else '(Cluster)',
+    if(is.null(ds$map)) NULL else c('(SOM X)', '(SOM Y)'),
+    if(is.null(ds$e)) NULL else c('(Embedding X)', '(Embedding Y)')
+  )
+  names(extraDims) <- extraDims
+
+  extraColors <- c(
+    '(Black)',
+    '(Density)',
+    '(File)',
+    if(is.null(ds$clust)) NULL else '(Cluster)'
+  )
+  names(extraColors) <- extraColors
   
   fluidRow(
     column(3,
-      pickerInput('dsOverviewExprsMarkers',
-        "Markers",
-        choices=choices,
-        options=list(
-          `actions-box` = TRUE, 
-          size = 10,
-          `selected-text-format` = 'count > 2'
-        ),
+      selectInput('dsOverviewMarkersH',
+        "Horizontal axis",
+        choices=c(extraDims, choices),
         multiple=T
-      )
+      ),
+      selectInput('dsOverviewMarkersV',
+        "Vertical axis",
+        choices=c(extraDims, choices),
+        multiple=T
+      ),
+      selectInput('dsOverviewColor',
+        "Point colors",
+        choices=c(extraColors, choices),
+        multiple=F,
+        selected='(No color)'
+      ),
+      sliderPointSize('dsOverviewCex'),
+      sliderAlpha('dsOverviewAlpha'),
+      sliderInput('dsOverviewSize', "Plot size", value=15, min=10, max=50, step=1)
     ),
     column(9,
-      uiOutput("plotDsOverviewExprsUi")
+      uiOutput('uiDsOverviewPlot')
     )
   )
 }
 
-#
-# Overview / Dots
-#
-
-diffsomRenderOverviewDots <- function(ds) {
-  
-  choices <- ds$prettyColnames
-  names(choices) <- choices
-  
-  fluidRow(
-    column(3,
-      checkboxInput("dsOverviewDotFiles",
-        "Separate colors for files",
-        value=F
-      ),
-      numericInput("dsOverviewDotAlpha",
-        "Dot alpha",
-        value=.5,
-        min=0.02,
-        max=1,
-        step=0.02
-      ),
-      numericInput("dsOverviewDotCount",
-        "Dot count",
-        value=20000,
-        min=1,
-        max=1000000,
-        step=1
-      ),
-      pickerInput('dsOverviewDotV',
-        "Vertical axis",
-        choices=choices,
-        options=list(size=10),
-        multiple=F
-      ),
-      pickerInput('dsOverviewDotH',
-        "Horizontal axis",
-        choices=choices,
-        options=list(size=10),
-        multiple=F
-      )
-    ),
-    column(9,
-      uiOutput("plotDsOverviewDotsUi")
-    )
-  )
+diffsomRenderOverviewPlot <- function(ds, size, h, v) {
+  if(h==0 || v==0) "Select markers first."
+  else plotOutput('plotDsOverview',
+    width=paste0(size*(h+overviewPlotHistMargin), 'em'),
+    height=paste0(size*(v+overviewPlotHistMargin),'em'))
 }
 
 #
@@ -527,62 +508,21 @@ serveDiffsom <- function(ws, ds, input, output) {
     diffsomRenderOverview(ds)
   })
 
-  # Overview / Single-marker Expression in files
-
-  output$diffsomOverviewExprs <- renderUI({
-    diffsomRenderOverviewExprs(ds)
+  output$uiDsOverviewPlot <- renderUI({
+    diffsomRenderOverviewPlot(
+      ds,
+      input$dsOverviewSize,
+      length(input$dsOverviewMarkersH),
+      length(input$dsOverviewMarkersV))
   })
 
-  debouncedOverviewExprsMarkers <- debounce(input$dsOverviewExprsMarkers, 100)
-
-  output$plotDsOverviewExprsUi <- renderUI({
-    plotOutput("plotDsOverviewExprs",
-      width='100%',
-      height=paste0(5+10*length(debouncedOverviewExprsMarkers()),'em'))
-  })
-
-  output$plotDsOverviewExprs <- renderPlot({
-    plotOverviewExprs(
-      ds$data,
-      ds$files,
-      ds$cellFile,
-      ds$prettyColnames,
-      debouncedOverviewExprsMarkers()
-    )
-  })
-
-  # Overview / Dot plots
-
-  debouncedOverviewDotParams <- debounce(
-    list(
-      files=input$dsOverviewDotFiles,
-      alpha=input$dsOverviewDotAlpha,
-      count=input$dsOverviewDotCount,
-      h=input$dsOverviewDotH,
-      v=input$dsOverviewDotV),
-    100)
-
-  output$diffsomOverviewDots <- renderUI({
-    diffsomRenderOverviewDots(ds)
-  })
-  
-  output$plotDsOverviewDotsUi <- renderUI({
-    plotOutput("plotDsOverviewDots",
-      width=if(debouncedOverviewDotParams()$files) '80em' else '50em',
-      height='50em')
-  })
-
-  output$plotDsOverviewDots <- renderPlot({
-    plotOverviewDots(
-      ds$data,
-      ds$files,
-      ds$cellFile,
-      ds$prettyColnames,
-      debouncedOverviewDotParams()$files,
-      debouncedOverviewDotParams()$alpha,
-      debouncedOverviewDotParams()$count,
-      debouncedOverviewDotParams()$h,
-      debouncedOverviewDotParams()$v)
+  output$plotDsOverview <- renderPlot({
+    plotOverview(ds, 
+      input$dsOverviewMarkersH,
+      input$dsOverviewMarkersV,
+      input$dsOverviewColor,
+      input$dsOverviewCex,
+      input$dsOverviewAlpha)
   })
 
   #
