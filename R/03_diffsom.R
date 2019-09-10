@@ -4,6 +4,7 @@
 #
 
 reactiveValsDiffsom <- function()
+  #TODO: I guess we can create this and 3 extra lists from a single list of values right?
   reactiveValues(
     files=NULL,
     cellFile=NULL,
@@ -21,49 +22,10 @@ reactiveValsDiffsom <- function()
     emcoords=NULL,
     e=NULL,
     #TODO: importance
-    nclust=NULL,
+    hclust=NULL,
     clust=NULL,
     annotation=NULL
   )
-
-# TODO: erase this when it gets exported from DiffSOM
-ds_hclust <- function(codes, data, importance=NULL, mapping, k=7){
-    # This code was proudly adapted from FlowSOM
-    d <- stats::dist(codes, method = "euclidean")
-    fit <- stats::hclust(d, method = "ward.D2")
-    stats::cutree(fit, k=k)
-    #end of FlowSOM copy
-}
-
-ds_kmeans <- function(codes, data, importance=NULL, mapping, k=7){
-    kmeans(x=codes, centers=k)$cluster
-}
-
-ds_consensus <- function(codes, data, importance=NULL, mapping, k=7){
-    seed <- sample(1000000000,1) #force "normal" behavior
-    # another FlowSOM copy begins
-    results <- suppressMessages(ConsensusClusterPlus::ConsensusClusterPlus(
-                                t(codes),
-                                maxK=k, reps=100, pItem=0.9, pFeature=1, 
-                                title=tempdir(), plot="pdf", verbose=FALSE,
-                                clusterAlg="hc",
-                                distance="euclidean",
-                                seed=seed
-    ))
-    results[[k]]$consensusClass
-    # FlowSOM copy ends
-}
-#TODO: erase ends here
-
-#
-# constants
-#
-
-CLUSTER_METHODS=list(
-  HCA=ds_hclust,
-  kMeans=ds_kmeans,
-  Consensus=ds_consensus
-)
 
 #
 # dataset initialization
@@ -71,9 +33,8 @@ CLUSTER_METHODS=list(
 
 dsInitFromDataset <- function(ds, dataset) {
   print("getting dataset from workspace")
-  print(names(dataset))
 
-  # reset everything first so that stuff gets properly reloaded
+  # reset everything first so that reactive stuff gets properly reloaded
   ds$files <- NULL
   ds$cellFile <- NULL
   ds$data <- NULL
@@ -89,7 +50,7 @@ dsInitFromDataset <- function(ds, dataset) {
   ds$k <- NULL
   ds$emcoords <- NULL
   ds$e <- NULL
-  ds$nclust <- NULL
+  ds$hclust <- NULL
   ds$clust <- NULL
   ds$annotation <- NULL
 
@@ -109,15 +70,13 @@ dsInitFromDataset <- function(ds, dataset) {
   ds$k <- dataset$k
   ds$emcoords <- dataset$emcoords
   ds$e <- dataset$e
-  ds$nclust <- dataset$nclust
-  ds$clust <- dataset$clust
+  ds$clust <- dataset$clust #switch order because of reloading shinyDendro
+  ds$hclust <- dataset$hclust
   ds$annotation <- dataset$annotation
 }
 
 dsGetDataset <- function(ds) {
   print("returning dataset to workspace")
-  print("saving annotation:")
-  print(ds$annotation)
   list(
   files=ds$files,
   cellFile=ds$cellFile,
@@ -134,7 +93,7 @@ dsGetDataset <- function(ds) {
   k=ds$k,
   emcoords=ds$emcoords,
   e=ds$e,
-  nclust=ds$nclust,
+  hclust=ds$hclust,
   clust=ds$clust,
   annotation=ds$annotation)
 }
@@ -149,72 +108,9 @@ renderDiffsom <- function() {
     tabPanel('Embedding', uiOutput('diffsomEmbedding')),
     tabPanel('Clustering', uiOutput('diffsomClustering')),
     tabPanel('Analysis', uiOutput('diffsomAnalysis')),
-    tabPanel('Gating', uiOutput('diffsomGating')),
+    tabPanel('Dissection', uiOutput('diffsomGating')),
     tabPanel('Export data', uiOutput('diffsomExport'))
   )
-}
-
-#
-# Overview / Expressions
-# 
-# TODO: follow this:
-# https://stackoverflow.com/questions/8545035/scatterplot-with-marginal-histograms-in-ggplot2#8545618
-
-diffsomRenderOverview <- function(ds) {
-  choices <- ds$prettyColnames
-  names(choices) <- choices
-
-  # Keep this in sync with 02_overview.R!
-
-  extraDims <- c(
-    '(File)',
-    if(is.null(ds$clust)) NULL else '(Cluster)',
-    if(is.null(ds$map)) NULL else c('(SOM X)', '(SOM Y)'),
-    if(is.null(ds$e)) NULL else c('(Embedding X)', '(Embedding Y)')
-  )
-  names(extraDims) <- extraDims
-
-  extraColors <- c(
-    '(Black)',
-    '(Density)',
-    '(File)',
-    if(is.null(ds$clust)) NULL else '(Cluster)'
-  )
-  names(extraColors) <- extraColors
-  
-  fluidRow(
-    column(3,
-      selectInput('dsOverviewMarkersH',
-        "Horizontal axis",
-        choices=c(extraDims, choices),
-        multiple=T
-      ),
-      selectInput('dsOverviewMarkersV',
-        "Vertical axis",
-        choices=c(extraDims, choices),
-        multiple=T
-      ),
-      selectInput('dsOverviewColor',
-        "Point colors",
-        choices=c(extraColors, choices),
-        multiple=F,
-        selected='(No color)'
-      ),
-      sliderPointSize('dsOverviewCex'),
-      sliderAlpha('dsOverviewAlpha'),
-      sliderInput('dsOverviewSize', "Plot size", value=15, min=10, max=50, step=1)
-    ),
-    column(9,
-      uiOutput('uiDsOverviewPlot')
-    )
-  )
-}
-
-diffsomRenderOverviewPlot <- function(ds, size, h, v) {
-  if(h==0 || v==0) "Select markers first."
-  else plotOutput('plotDsOverview',
-    width=paste0(size*(h+overviewPlotHistMargin), 'em'),
-    height=paste0(size*(v+overviewPlotHistMargin),'em'))
 }
 
 #
@@ -224,6 +120,8 @@ diffsomRenderOverviewPlot <- function(ds, size, h, v) {
 diffsomRenderEmbedding <- function(ds) {
   choices <- ds$prettyColnames
   names(choices) <- choices
+  
+  #TODO: this deserves an accordion as in here: https://getbootstrap.com/docs/4.0/components/collapse/#accordion-example
 
   fluidRow(
     column(3,
@@ -300,37 +198,36 @@ diffsomRenderEmbedEView <- function(ds) {
 
 diffsomRenderClustering <- function(ds) {
   if(is.null(ds$map)) p("Compute the SOM first")
-  else fluidRow(
+  else div(
+  fluidRow(
     column(3,
       h3("Clustering"),
-      selectInput("dsClusterMethod", label="Clustering algorithm", choices=names(CLUSTER_METHODS), multiple=F),
-      numericInput("dsClusterNClust", label="Number of clusters", value=10, min=2, max=30, step=1),
-      #TODO: seed?
-      actionButton("dsClusterDoCluster", label="Run clustering"),
-      h3("Annotations"),
-      uiOutput("uiDsClusterAnnotate"),
-      uiOutput("uiDsClusterAnnotateSummary")
+      selectInput("dsClusterMethod", label="Hierarchical clustering method", choices=names(CLUSTER_METHODS), multiple=F),
+      actionButton("dsClusterDoCluster", label="Create hierarchy"),
+      uiOutput("uiDsClusterHeat"),
+      uiOutput("uiDsClusterAnnotation")
     ),
-    column(9,
-      h3("Expressions in clusters"),
-      pickerInput("dsClusterExpressionCols",
-        "Columns to display",
-        choices=unname(ds$prettyColnames),
-        options=list(size=10),
-        multiple=T),
-      uiOutput("uiDsClusterExpressions"),
-      h3("Embedded clusters"),
-      pickerInput("dsClusterEmbedCol",
-        "Columns to display",
-        choices=c("(show clusters)", unname(ds$prettyColnames)),
-        options=list(size=10),
-        selected="(show clusters)",
-        multiple=F),
+    column(4,
+      h4("Cluster assignment"),
+      shinyDendroOutput("dsClustDendro", width='100%', height='50em')
+    ),
+    column(4,
+      h4("Clusters overview"),
       uiOutput("uiDsClusterEmbedding"),
-      sliderInput('dsClustEmbedCex', "Point size", value=1, min=0, max=5, step=.1),
-      sliderInput('dsClustEmbedAlpha', "Alpha", value=0.3, min=0.01, max=1)
+      sliderPointSize('dsClustEmbedCex'),
+      sliderAlpha('dsClustEmbedAlpha')
     )
+  ),
+  uiOutput('diffsomClustOverview')
   )
+}
+
+diffsomRenderClusterHeat <- function(ds) {
+  if(is.null(ds$hclust)) div()
+  else selectInput("dsClusterHeat", "Heatmap columns",
+    choices=unname(ds$colsToUse),
+    multiple=T,
+    selected=c())
 }
 
 diffsomRenderClusterAnnotation <- function(ds) {
@@ -443,9 +340,9 @@ diffsomRenderASignificance <- function(ds) {
           if(is.null(ds$annotation)) NULL else 'Annotated clusters'),
         selected='SOM',
         multiple=F),
-      sliderInput('dsASigPow', "p-value transform", value=10, min=0.1, max=30),
-      sliderInput('dsASigCex', "Point size", value=0.5, min=0.1, max=2),
-      sliderInput('dsASigAlpha', "Alpha", value=0.3, min=0.01, max=1)
+      sliderInput('dsASigPow', "p-value threshold", value=10, min=0.1, max=30),
+      sliderPointSize('dsASigCex'),
+      sliderAlpha('dsASigAlpha')
     ),
     column(9,
       plotOutput('plotDsASig', width='50em', height='50em'),
@@ -457,16 +354,16 @@ diffsomRenderASignificance <- function(ds) {
 }
 
 #
-# Gating
+# Gating a.k.a. dissection
 #
 
 diffsomRenderGating <- function(ds) {
   if(is.null(ds$annotation) || is.null(ds$clust))
     p("Cluster and annotate the populations first.")
   else div(
-    h3("Gate populations"),
+    h3("Create population subsets"),
     pickerInput("dsGatePops",
-      "Populations",
+      "Populations in the new dataset",
       choices=levels(factor(ds$annotation)),
       multiple=T,
       options=list(size=10)),
@@ -504,26 +401,7 @@ serveDiffsom <- function(ws, ds, input, output) {
   # Overview tab
   #
 
-  output$diffsomOverview <- renderUI({
-    diffsomRenderOverview(ds)
-  })
-
-  output$uiDsOverviewPlot <- renderUI({
-    diffsomRenderOverviewPlot(
-      ds,
-      input$dsOverviewSize,
-      length(input$dsOverviewMarkersH),
-      length(input$dsOverviewMarkersV))
-  })
-
-  output$plotDsOverview <- renderPlot({
-    plotOverview(ds, 
-      input$dsOverviewMarkersH,
-      input$dsOverviewMarkersV,
-      input$dsOverviewColor,
-      input$dsOverviewCex,
-      input$dsOverviewAlpha)
-  })
+  overviewServe('diffsomOverview', 'Standalone', ds, input, output)
 
   #
   # Embedding tab
@@ -576,7 +454,7 @@ serveDiffsom <- function(ws, ds, input, output) {
   observeEvent(input$dsEmbedDoEmbed, {
     if(!is.null(ds$map)) {
       ds$e <- EmbedSOM::EmbedSOM(
-        data=ds$data[,findColIds(ds$colsToUse, ds$prettyColnames)], #TODO: perhaps use ds$map$colsUsed?
+        data=ds$data[,findColIds(ds$colsToUse, ds$prettyColnames)],
         map=ds$map,
         smooth=ds$smooth,
         adjust=ds$adjust,
@@ -609,50 +487,46 @@ serveDiffsom <- function(ws, ds, input, output) {
 
   observeEvent(input$dsClusterDoCluster, {
     if(!is.null(ds$map)) {
-      ds$nclust <- input$dsClusterNClust
-      ds$clust <- CLUSTER_METHODS[[input$dsClusterMethod]](
+      ds$hclust <- CLUSTER_METHODS[[input$dsClusterMethod]](
         codes=ds$map$codes,
-        data=ds$fs$data[,ds$map$colsUsed], #TODO: perhaps use findColIds?
+        data=ds$data[,findColIds(ds$colsToUse, ds$prettyColnames)],
         importance=NULL, #TODO: add support
-        mapping=ds$map$mapping[,1],
-        k=ds$nclust)
+        mapping=ds$map$mapping[,1])
     }
   })
 
-  output$uiDsClusterAnnotate <- renderUI({
-    diffsomRenderClusterAnnotation(ds)
+  output$uiDsClusterHeat <- renderUI(diffsomRenderClusterHeat(ds))
+
+  output$dsClustDendro <- renderShinyDendro({
+    if(!is.null(ds$hclust)) {
+      colors <- getHeatmapColors(ds, input$dsClusterHeat)
+      shinyDendro('dsClustDendroOutput', 
+        ds$hclust$height,
+        ds$hclust$merge,
+        ds$hclust$order,
+        heatmap=colors,
+        assignment=if(is.null(isolate(ds$clust))) NULL else unsetClustNAs(isolate(ds$clust))
+      )
+    } else NULL
   })
 
-  output$uiDsClusterAnnotateSummary <- renderUI({
-    diffsomRenderClusterAnnotationSummary(ds, input)
-  })
-
-  output$uiDsClusterExpressions <- renderUI({
-    diffsomRenderClusterExpressions(ds, length(input$dsClusterExpressionCols))
+  observeEvent(input$dsClustDendroOutput, {
+    ds$clust <- setClustNAs(input$dsClustDendroOutput)
   })
 
   output$uiDsClusterEmbedding <- renderUI({
     diffsomRenderClusterEmbedding(ds)
   })
 
-  output$plotDsClustExprs <- renderPlot({
-    if(length(input$dsClusterExpressionCols)>0)
-      plotClustExpr(
-        input$dsClusterExpressionCols,
-        ds$data[,findColIds(input$dsClusterExpressionCols, ds$prettyColnames)],
-        ds$annotation[ds$clust[ds$map$mapping[,1]]])
-  })
-
   output$plotDsClustEmbed <- renderPlot({
     plotClustEmbed(
       ds$e,
-      if(input$dsClusterEmbedCol %in% ds$prettyColnames)
-        ds$data[,findColIds(input$dsClusterEmbedCol, ds$prettyColnames)]
-      else NULL,
-      ds$annotation[ds$clust[ds$map$mapping[,1]]],
+      ds$clust[ds$map$mapping[,1]],
       input$dsClustEmbedCex,
       input$dsClustEmbedAlpha)
   })
+
+  overviewServe('diffsomClustOverview', 'Clust', ds, input, output)
 
   #
   # Analysis tab

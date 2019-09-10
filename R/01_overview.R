@@ -6,6 +6,8 @@ overviewRender <- function(ds, id='', savedSel, title="Overview", defaultColor="
   choices <- ds$prettyColnames
   names(choices) <- choices
 
+  #TODO: Filter saved choices!
+
   # Keep this in sync with 02_overview.R!
 
   extraDims <- c(
