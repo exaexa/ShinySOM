@@ -1,20 +1,28 @@
 
 annotationRender <- function(ds) {
   if(is.null(ds$clust)) return(div())
+  cl <- factor(ds$clust)
+  if(length(levels(cl))==0) return(div())
 
-  res <- tagList()
-  res <- tagAppendChild(res, h4("Population names"))
+  res <- tags$table(class="table")
+  res <- tagAppendChild(res, tags$tr(tags$th("Key", align='center'), tags$th("Population name"), tags$th("Cells", align='right')))
   anns <- isolate(ds$annotation)
-  for(l in levels(factor(ds$clust)))
+  for(l in levels(cl))
     res <- tagAppendChild(res, 
-      div(
-        span(l),
-        ilDiv(
+      tags$tr(
+        tags$td(strong(l), align='center'),
+        tags$td(
           textInput(
             paste0('dsClustAnnotation_',l),
             NULL,
             value=if(is.null(anns) || is.na(anns[l])) l else anns[l]
           )
+        ),
+        tags$td(align='right', paste0(format(
+            100*sum(cl[ds$map$mapping[,1]]==l,na.rm=T)
+              /dim(ds$map$mapping)[1],
+            digits=3),
+          "%")
         )
       )
     )
