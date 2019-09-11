@@ -88,6 +88,7 @@ plotOverview <- function(ds, markersH, markersV, markerColor, cex, alpha) {
       )
     )
 
+    #TODO: filter NAs here
     plotOverviewHist(gatherOverviewPlotDim(ds, markersH[i]), vertical=F)
     mtext(markersH[i], side=3)
   }

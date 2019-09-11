@@ -15,13 +15,13 @@ CLUSTER_METHODS=list(
   `Manhattan/Complete`=wrapHClustFunc('manhattan', 'complete'),
   `Euclidean/Average`=wrapHClustFunc('euclidean', 'average'),
   `Manhattan/Average`=wrapHClustFunc('manhattan', 'average'),
-  `Mahalanobis Euclidean/Average)`=function(codes, data, importance=NULL, mapping) {
-    cl <- mhca::cutreeApriori(
+  `Mahalanobis/Average`=function(codes, data, importance=NULL, mapping) {
+    cl <- mhca::cutreeApriori(mhca::fixNonMonotHca(
       mhca::mhclust(
         x = if(is.null(importance)) data else (data%*%diag(importance)),
         g = mapping,
         quick = T,
-        gIntra = F))
+        gIntra = F)))
     list(height=cl$height, merge=cl$merge, order=cl$order)
   }
 )

@@ -70,9 +70,10 @@ dsInitFromDataset <- function(ds, dataset) {
   ds$k <- dataset$k
   ds$emcoords <- dataset$emcoords
   ds$e <- dataset$e
-  ds$clust <- dataset$clust #switch order because of reloading shinyDendro
-  ds$hclust <- dataset$hclust
+  #switch order here because of reloading shinyDendro&annotations
   ds$annotation <- dataset$annotation
+  ds$clust <- dataset$clust
+  ds$hclust <- dataset$hclust
 }
 
 dsGetDataset <- function(ds) {
@@ -186,8 +187,8 @@ diffsomRenderEmbedEView <- function(ds) {
       multiple=F,
       selected='(show density)'
       ),
-    sliderInput('dsEmbedEExprCex', "Point size", value=1, min=0, max=5, step=.1),
-    sliderInput('dsEmbedEExprAlpha', "Alpha", value=0.3, min=0.01, max=1),
+    sliderPointSize('dsEmbedEExprCex'),
+    sliderAlpha('dsEmbedEExprAlpha'),
     plotOutput("plotDsEmbedEExpr", width='56em', height='56em')
   )
 }
@@ -230,42 +231,6 @@ diffsomRenderClusterHeat <- function(ds) {
     selected=c())
 }
 
-diffsomRenderClusterAnnotation <- function(ds) {
-  if(is.null(ds$clust) || is.null(ds$nclust)) p("Compute the clustering first")
-  else {
-    res <- tagList()
-    for(i in 1:(ds$nclust))
-      res <- tagAppendChild(res,
-        #TODO: this doesn't reload properly, fix later.
-        textInput(paste0("dsClusterAnnotation",i), NULL, value=isolate(if(is.null(ds$annotation)||is.na(ds$annotation[i])) paste("Cluster",i) else ds$annotation[i])))
-    res
-  }
-}
-
-gatherAnnotation <- function(ds, input) {
-  sapply(1:ds$nclust, function(x) input[[paste0("dsClusterAnnotation",x)]])
-}
-
-diffsomRenderClusterAnnotationSummary <- function(ds,input) {
-  #this transparently automagically gathers all annotations to ds$annotation
-  if(is.null(ds$clust) || is.null(ds$nclust)) div()
-  else {
-    anns <- gatherAnnotation(ds, input)
-    ds$annotation <- anns
-    p(paste("(total ", length(table(anns)), "annotated populations)"))
-  }
-}
-
-diffsomRenderClusterExpressions <- function(ds, colsSelected) {
-  if(is.null(ds$clust) || is.null(ds$nclust))
-    p("Compute the clustering first")
-  else if (colsSelected==0)
-    p("Select at least one column")
-  else 
-    plotOutput('plotDsClustExprs',
-      width='50em', height=paste0(10*(1+colsSelected),'em'))
-}
-
 diffsomRenderClusterEmbedding <- function(ds) {
   if(is.null(ds$e))
     p("Compute the embedding first")
@@ -281,9 +246,14 @@ diffsomRenderClusterEmbedding <- function(ds) {
 
 diffsomRenderAnalysis <- function(ds) {
   tabsetPanel(type='tabs',
+    tabPanel('Files heatmap', uiOutput('diffsomAnalysisHeatmap')),
     tabPanel('Compare files', uiOutput('diffsomAnalysisDiff')),
     tabPanel('Significance plots', uiOutput('diffsomAnalysisSignificance'))
   )
+}
+
+diffsomRenderAHeat <- function() {
+  plotOutput('plotDsAHeat', width='100%', height='70em')
 }
 
 diffsomRenderADiff <- function(ds) {
@@ -307,8 +277,8 @@ diffsomRenderADiff <- function(ds) {
                   unname(ds$prettyColnames)),
         multiple=F,
         selected='(density)'),
-      sliderInput('dsADiffCex', "Point size", value=0.5, min=0.1, max=2),
-      sliderInput('dsADiffAlpha', "Alpha", value=0.3, min=0.01, max=1)
+      sliderPointSize('dsADiffCex'),
+      sliderAlpha('dsADiffAlpha')
     ),
     column(5,
       plotOutput('plotDsADiffL', width='30em', height='30em')
@@ -336,11 +306,10 @@ diffsomRenderASignificance <- function(ds) {
       selectInput('dsASigGran', label='Granularity',
         choices=c(
           'SOM',
-          if(is.null(ds$clust)) NULL else 'Metaclusters',
-          if(is.null(ds$annotation)) NULL else 'Annotated clusters'),
+          if(is.null(ds$clust)) NULL else 'Clusters'),
         selected='SOM',
         multiple=F),
-      sliderInput('dsASigPow', "p-value threshold", value=10, min=0.1, max=30),
+      sliderInput('dsASigPow', "significance transform", value=10, min=0.1, max=30),
       sliderPointSize('dsASigCex'),
       sliderAlpha('dsASigAlpha')
     ),
@@ -362,9 +331,9 @@ diffsomRenderGating <- function(ds) {
     p("Cluster and annotate the populations first.")
   else div(
     h3("Create population subsets"),
-    pickerInput("dsGatePops",
+    pickerInput("dsGateClusters",
       "Populations in the new dataset",
-      choices=levels(factor(ds$annotation)),
+      choices=namesInvert(ds$annotation),
       multiple=T,
       options=list(size=10)),
     textInput("dsGateNewName", "New dataset name", placeholder="Enter name"),
@@ -522,11 +491,13 @@ serveDiffsom <- function(ws, ds, input, output) {
     plotClustEmbed(
       ds$e,
       ds$clust[ds$map$mapping[,1]],
+      ds$annotation,
       input$dsClustEmbedCex,
       input$dsClustEmbedAlpha)
   })
 
   overviewServe('diffsomClustOverview', 'Clust', ds, input, output)
+  annotationServe('uiDsClusterAnnotation', ds, input, output)
 
   #
   # Analysis tab
@@ -536,6 +507,10 @@ serveDiffsom <- function(ws, ds, input, output) {
     diffsomRenderAnalysis(ds)
   })
 
+  output$diffsomAnalysisHeatmap <- renderUI({
+    diffsomRenderAHeat()
+  })
+
   output$diffsomAnalysisDiff <- renderUI({
     diffsomRenderADiff(ds)
   })
@@ -543,6 +518,17 @@ serveDiffsom <- function(ws, ds, input, output) {
   output$diffsomAnalysisSignificance <- renderUI({
     diffsomRenderASignificance(ds)
   })
+
+  output$plotDsAHeat <- renderPlot(
+    if(!is.null(ds$clust) && length(levels(factor(ds$clust)))>0) {
+      plotDsAHeat(
+        ds$clust[ds$map$mapping[,1]],
+        ds$annotation,
+        ds$cellFile,
+        ds$files
+      )
+    }
+  )
 
   output$plotDsADiffL <- renderPlot({
     if(length(input$dsADiffFilesLeft)>0)
@@ -593,10 +579,10 @@ serveDiffsom <- function(ws, ds, input, output) {
       showNotification(type='error', "Dataset of same name already exists.")
     } else if (!datasetNameValid(input$dsGateNewName)) {
       showNotification(type='error', "Dataset name is invalid.")
-    }else if(length(input$dsGatePops)==0) {
+    }else if(length(input$dsGateClusters)==0) {
       showNotification(type='error', "No populations selected")
     } else {
-      filt <- ds$annotation[ds$clust[ds$map$mapping[,1]]] %in% input$dsGatePops
+      filt <- ds$clust[ds$map$mapping[,1]] %in% input$dsGateClusters
       nds <- list(
         files=ds$files,
         data=ds$data[filt,],

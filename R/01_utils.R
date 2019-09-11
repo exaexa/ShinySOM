@@ -3,10 +3,16 @@ findColIds <- function(cols, all) {
   seq_len(length(all))[all %in% cols]
 }
 
+namesInvert <- function(c) {
+  r <- names(c)
+  names(r) <- c
+  r
+}
+
 ilDiv <- function(..., style='') div(
   style=paste0('display: inline-block;', style), ...)
 
-sliderPointSize <- function(id, value=1) sliderInput(
+sliderPointSize <- function(id, value=0) sliderInput(
   id, "Point size", value=value, min=0, max=3, step=.1)
 
 sliderAlpha <- function(id, value=0.3) sliderInput(
@@ -35,4 +41,22 @@ getHeatmapColors <- function(ds, colors) {
   })
   colnames(d) <- ds$colsToUse[ids]
   d
+}
+
+plotClusterTextAnnotation <- function(e, cl, annotation, centerFunction=median, ...) {
+  if(!is.factor(cl)) cl <- factor(cl)
+  centers <- t(sapply(levels(cl),
+    function(x) apply(e[!is.na(cl) & cl==x,], 2, centerFunction)))
+
+  text(centers, annotation[levels(cl)], ...)
+}
+
+pad.zero <- function(v, l) {
+  if(length(v)==l) {
+    v
+  } else if (length(v)>l) {
+    v[1:l]
+  }  else {
+    c(v, rep(0, times=l-length(v)))
+  }
 }
