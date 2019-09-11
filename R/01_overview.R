@@ -6,8 +6,6 @@ overviewRender <- function(ds, id='', savedSel, title="Overview", defaultColor="
   choices <- ds$prettyColnames
   names(choices) <- choices
 
-  #TODO: Filter saved choices!
-
   # Keep this in sync with 02_overview.R!
 
   extraDims <- c(
@@ -25,38 +23,52 @@ overviewRender <- function(ds, id='', savedSel, title="Overview", defaultColor="
     if(is.null(ds$clust)) NULL else '(Cluster)'
   )
   names(extraColors) <- extraColors
-  
+
+  # gather and filter saved choices to prevent weird stuff from other screens being shown
+  selectedH <- isolate(savedSel$horiz)
+  selectedV <- isolate(savedSel$vert)
+  selectedC <- isolate(savedSel$color)
+
+  selectedH <- selectedH[selectedH %in% c(extraDims, choices)]
+  selectedV <- selectedV[selectedV %in% c(extraDims, choices)]
+  if(is.null(selectedC) || !(selectedC %in% c(extraColors, choices)))
+    selectedC <- defaultColor
+
   div(h3(title),
   fluidRow(
     column(3,
+      tooltip("Selected values will be used for X coordinate of the cells in the scatterplots.",
       selectInput(my('dsOverviewMarkersH'),
         "Horizontal axis",
         choices=c(extraDims, choices),
         multiple=T,
-        selected=isolate(savedSel$horiz)
-      ),
+        selected=selectedH
+      )),
+      tooltip("Selected values will be used for Y coordinate of the cells in the scatterplots.",
       selectInput(my('dsOverviewMarkersV'),
         "Vertical axis",
         choices=c(extraDims, choices),
         multiple=T,
-        selected=isolate(savedSel$vert)
-      ),
+        selected=selectedV
+      )),
+      tooltip("Selected values will be used to colorize the individual cells in the scatterplots.",
       selectInput(my('dsOverviewColor'),
         "Point colors",
         choices=c(extraColors, choices),
         multiple=F,
-        selected=isolate(if(is.null(savedSel$color)) defaultColor else savedSel$color)
-      ),
+        selected=selectedC
+      )),
       if(is.null(isolate(savedSel$pointsize)))
         sliderPointSize(my('dsOverviewCex'))
       else sliderPointSize(my('dsOverviewCex'), value=isolate(savedSel$pointsize)),
       if(is.null(isolate(savedSel$alpha)))
         sliderAlpha(my('dsOverviewAlpha'))
       else sliderAlpha(my('dsOverviewAlpha'), value=isolate(savedSel$alpha)),
+      tooltip("Magnification factor of the scatterplots. Useful for fitting more scatterplots to a single screen.",
       if(is.null(isolate(savedSel$size)))
         sliderInput(my('dsOverviewSize'), "Plot size", value=15, min=10, max=50, step=1)
       else
-        sliderInput(my('dsOverviewSize'), "Plot size", value=isolate(savedSel$size), min=10, max=50, step=1)
+        sliderInput(my('dsOverviewSize'), "Plot size", value=isolate(savedSel$size), min=10, max=50, step=1))
     ),
     column(9,
       uiOutput(my('uiDsOverviewPlot'))

@@ -126,7 +126,8 @@ diffsomRenderEmbedding <- function(ds) {
 
   fluidRow(
     column(3,
-      h3("SOM"),
+      tooltip("You may choose parameters for constructing the self-organizing map (SOM) here. The SOM will be later used for describing and clustering the cell space.", h3("SOM")),
+      tooltip("Select markers and data columns that carry information useful for this step of analysis and dissection.",
       pickerInput('dsEmbedColsToUse', "Columns to use",
         choices=choices,
         options=list(
@@ -135,12 +136,16 @@ diffsomRenderEmbedding <- function(ds) {
           `selected-text-format` = 'count > 3'
         ),
         multiple=T,
-        selected=isolate(if(is.null(ds$colsToUse)) ds$prettyColnames else ds$colsToUse)),
-      sliderInput('dsEmbedXdim', "SOM nodes X", value=isolate(if(is.null(ds$xdim)) 10 else ds$xdim), min=2, max=50, step=1),
-      sliderInput('dsEmbedYdim', "SOM nodes Y", value=isolate(if(is.null(ds$ydim)) 10 else ds$ydim), min=2, max=50, step=1),
-      sliderInput('dsEmbedRlen', "SOM repeats", value=isolate(if(is.null(ds$rlen)) 10 else ds$rlen), min=1, max=100, step=1),
-      numericInput('dsEmbedSeed', "Random seed", value=isolate(if(is.null(ds$seed)) 1 else ds$seed), min=0, max=999999999, step=1),
-      actionButton('dsEmbedDoSOM', "Compute SOM"),
+        selected=isolate(if(is.null(ds$colsToUse)) ds$prettyColnames else ds$colsToUse))),
+      tooltip("Choose the X and Y sizes of SOM. The SOM will be able to approximate roughly X*Y different clusters. Larger SOMs capture more details, but take longer to compute.",
+      sliderInput('dsEmbedXdim', "SOM nodes X", value=isolate(if(is.null(ds$xdim)) 16 else ds$xdim), min=2, max=50, step=1)),
+      sliderInput('dsEmbedYdim', "SOM nodes Y", value=isolate(if(is.null(ds$ydim)) 16 else ds$ydim), min=2, max=50, step=1),
+      tooltip("How many times the data will be presented to SOM, larger values may produce a better fitting SOM for the cost of computation time. Increase the value slightly for less than 10.000 cells. For datasets over 100.000 cells, the value can be safely decreased.",
+      sliderInput('dsEmbedRlen', "SOM epochs", value=isolate(if(is.null(ds$rlen)) 10 else ds$rlen), min=1, max=100, step=1)),
+      tooltip("Random seed for SOM training. Choose a different value to train a different SOM.",
+      numericInput('dsEmbedSeed', "Random seed", value=isolate(if(is.null(ds$seed)) 1 else ds$seed), min=0, max=999999999, step=1)),
+      tooltip("SOM training may take several seconds to several minutes (on datasets larger than around one million cells).",
+      actionButton('dsEmbedDoSOM', "Compute SOM")),
       uiOutput('uiDsEmbedParams')
     ),
     column(9,
@@ -157,24 +162,29 @@ diffsomRenderEmbeddingParams <- function(ds) {
   names(emcoords) <- c('Flat', 'U-matrix', 'MST-based', 'tSNE meta-embedding', 'UMAP meta-embedding')
   div(
     h3("Embedding"),
-    sliderInput('dsEmbedSmooth', "Smoothing", value=if(is.null(ds$smooth)) 0 else ds$smooth, min=-5, max=5, step=.1),
-    sliderInput('dsEmbedAdjust', "Adjust", value=if(is.null(ds$adjust)) 1 else ds$adjust, min=0, max=5, step=.1),
-    sliderInput('dsEmbedK', "NNs (k)", value=if(is.null(ds$k)) 20 else ds$k, min=3, max=ds$xdim*ds$ydim, step=1),
-    selectInput('dsEmbedCoords', "Embedding coords manipulation", choices=emcoords, selected=ds$emcoords),
-    actionButton('dsEmbedDoEmbed', "Compute Embedding")
+    tooltip("Increase to produce rounder embedding; decrease to see (possibly uninteresting) details.",
+    sliderInput('dsEmbedSmooth', "Smoothing", value=if(is.null(ds$smooth)) 0 else ds$smooth, min=-5, max=5, step=.1)),
+    tooltip("Adjust parameter for EmbedSOM. Larger values remove non-local information from approximation (e.g. pathways or noise that is not captured by SOM).",
+    sliderInput('dsEmbedAdjust', "Adjust", value=if(is.null(ds$adjust)) 1 else ds$adjust, min=0, max=5, step=.1)),
+    tooltip("K parameter for EmbedSOM. Large values impact computation time, and may produce too smooth embedding. Small values cause approximation failures.",
+    sliderInput('dsEmbedK', "NNs (k)", value=if(is.null(ds$k)) 20 else ds$k, min=3, max=ds$xdim*ds$ydim, step=1)),
+    tooltip("Meta-embedding. The selected algorithm will embed only the SOM nodes, atop of which actual cells will be quickly fitted by EmbedSOM. Some choices require lowering Adjust.",
+    selectInput('dsEmbedCoords', "Embedding coords manipulation", choices=emcoords, selected=ds$emcoords)),
+    tooltip("Embedding computation generally takes several seconds for datasets smaller than million cells",
+    actionButton('dsEmbedDoEmbed', "Compute Embedding"))
   )
 }
 
 diffsomRenderEmbedSOMView <- function(ds) {
-  if(is.null(ds$map)) p("Compute the map first")
+  if(is.null(ds$map)) p("Compute the SOM first")
   else div(
-    pickerInput('dsEmbedSOMViewCol', "Column",
+    selectInput('dsEmbedSOMViewCol', "Column",
       choices=isolate(ds$colsToUse),
-      options=list(size=10),
       multiple=F,
       selected=isolate(ds$colsToUse[1])
       ),
-    plotOutput("plotDsEmbedSOMView", width=paste0(2*(1+ds$map$xdim),'em'), height=paste0(2*(1+ds$map$ydim),'em'))
+    tooltip("Each point represents a trained SOM node (and the corresponding cell cluster around it). Color = expression value of the selected marker. Size of the gray border grows with growing data variance in the cluster.",
+    plotOutput("plotDsEmbedSOMView", width=paste0(2*(1+ds$map$xdim),'em'), height=paste0(2*(1+ds$map$ydim),'em')))
   )
 }
 

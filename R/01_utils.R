@@ -12,11 +12,11 @@ namesInvert <- function(c) {
 ilDiv <- function(..., style='') div(
   style=paste0('display: inline-block;', style), ...)
 
-sliderPointSize <- function(id, value=0) sliderInput(
-  id, "Point size", value=value, min=0, max=3, step=.1)
+sliderPointSize <- function(id, value=0) tooltip("Cell radius in the scatterplot, in pixels. 0 = single pixel for each cell.",
+  sliderInput(id, "Point size", value=value, min=0, max=3, step=.1))
 
-sliderAlpha <- function(id, value=0.3) sliderInput(
-  id, "Alpha", value=value, min=0.01, max=1, step=.01)
+sliderAlpha <- function(id, value=0.3) tooltip("Transparency of cells in the scatterplot.",
+  sliderInput(id, "Alpha", value=value, min=0.01, max=1, step=.01))
 
 setClustNAs <- function(x) {
   x[x==' ']<-NA
