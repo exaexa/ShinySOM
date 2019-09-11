@@ -161,7 +161,8 @@ diffsomRenderEmbeddingParams <- function(ds) {
   emcoords <- c('flat','som','mst','tsne','umap')
   names(emcoords) <- c('Flat', 'U-matrix', 'MST-based', 'tSNE meta-embedding', 'UMAP meta-embedding')
   div(
-    h3("Embedding"),
+    tooltip("Embedding serves for visualizing the entire dataset in 2D; by itself it has no direct impact on the analysis.",
+    h3("Embedding")),
     tooltip("Increase to produce rounder embedding; decrease to see (possibly uninteresting) details.",
     sliderInput('dsEmbedSmooth', "Smoothing", value=if(is.null(ds$smooth)) 0 else ds$smooth, min=-5, max=5, step=.1)),
     tooltip("Adjust parameter for EmbedSOM. Larger values remove non-local information from approximation (e.g. pathways or noise that is not captured by SOM).",
@@ -178,11 +179,12 @@ diffsomRenderEmbeddingParams <- function(ds) {
 diffsomRenderEmbedSOMView <- function(ds) {
   if(is.null(ds$map)) p("Compute the SOM first")
   else div(
+    tooltip("The expression of the selected marker or data column will be shown in the plot below.",
     selectInput('dsEmbedSOMViewCol', "Column",
       choices=isolate(ds$colsToUse),
       multiple=F,
       selected=isolate(ds$colsToUse[1])
-      ),
+      )),
     tooltip("Each point represents a trained SOM node (and the corresponding cell cluster around it). Color = expression value of the selected marker. Size of the gray border grows with growing data variance in the cluster.",
     plotOutput("plotDsEmbedSOMView", width=paste0(2*(1+ds$map$xdim),'em'), height=paste0(2*(1+ds$map$ydim),'em')))
   )
@@ -191,15 +193,16 @@ diffsomRenderEmbedSOMView <- function(ds) {
 diffsomRenderEmbedEView <- function(ds) {
   if(is.null(ds$e)) p("Compute the embedding first")
   else div(
+    tooltip("The expression of the selected marker or data column will be shown in the embedding below.",
     pickerInput('dsEmbedEViewCol', "Column",
       choices=c('(show density)', unname(ds$prettyColnames)),
       options=list(size=10),
       multiple=F,
       selected='(show density)'
-      ),
+      )),
+    plotOutput("plotDsEmbedEExpr", width='56em', height='56em'),
     sliderPointSize('dsEmbedEExprCex'),
-    sliderAlpha('dsEmbedEExprAlpha'),
-    plotOutput("plotDsEmbedEExpr", width='56em', height='56em')
+    sliderAlpha('dsEmbedEExprAlpha')
   )
 }
 
@@ -208,22 +211,27 @@ diffsomRenderEmbedEView <- function(ds) {
 #
 
 diffsomRenderClustering <- function(ds) {
-  if(is.null(ds$map)) p("Compute the SOM first")
+  if(is.null(ds$map)) tooltip("For performance and precision reasons, the clustering is ran atop the space pre-partitioned by the traned SOM.",
+    p("Compute the SOM first"))
   else div(
   fluidRow(
     column(3,
-      h3("Clustering"),
-      selectInput("dsClusterMethod", label="Hierarchical clustering method", choices=names(CLUSTER_METHODS), multiple=F),
-      actionButton("dsClusterDoCluster", label="Create hierarchy"),
+      tooltip("Clustering allows classification of the cells into named categories, usually corresponding to biologically relevant populations.", h3("Clustering")),
+      tooltip("The method will be used to create a hierarchical dendrogram that will serve as a basis for classification.",
+      selectInput("dsClusterMethod", label="Hierarchical clustering method", choices=names(CLUSTER_METHODS), multiple=F)),
+      tooltip("Dendrograms are usually created instantly; except for Mahalanobis-based clustering which takes several seconds.",
+      actionButton("dsClusterDoCluster", label="Create hierarchy")),
       uiOutput("uiDsClusterHeat"),
       uiOutput("uiDsClusterAnnotation")
     ),
     column(4,
-      h4("Cluster assignment"),
+      tooltip("Use the shinyDendro interface for assigning labels to dendrogram branches. Click the interface to focus it; then use keyboard keys (a-z, 1-9) to choose a cluster mark; then click a branch to assign the mark. Use Space to erase the marks.",
+      h4("Cluster assignment")),
       shinyDendroOutput("dsClustDendro", width='100%', height='50em')
     ),
     column(4,
-      h4("Clusters overview"),
+      tooltip("This is a rough preview of how the cell classification looks in the embedding. Use the overview scatterplots below to obtain more precise views.",
+      h4("Clusters overview")),
       uiOutput("uiDsClusterEmbedding"),
       sliderPointSize('dsClustEmbedCex'),
       sliderAlpha('dsClustEmbedAlpha')
@@ -235,17 +243,18 @@ diffsomRenderClustering <- function(ds) {
 
 diffsomRenderClusterHeat <- function(ds) {
   if(is.null(ds$hclust)) div()
-  else selectInput("dsClusterHeat", "Heatmap columns",
+  else tooltip("Choose markers/data columns that should appear in the dendrogram. The view helps with classifying the related cell subsets.",
+    selectInput("dsClusterHeat", "Heatmap columns",
     choices=unname(ds$colsToUse),
     multiple=T,
-    selected=c())
+    selected=c()))
 }
 
 diffsomRenderClusterEmbedding <- function(ds) {
   if(is.null(ds$e))
     p("Compute the embedding first")
   else if(is.null(ds$clust))
-    p("Compute the clustering first")
+    p("Create the clustering first")
   else plotOutput('plotDsClustEmbed',
     width='40em', height='40em')
 }
