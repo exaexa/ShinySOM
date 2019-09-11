@@ -41,19 +41,21 @@ gatherOverviewColorDim <- function(ds, id) {
 }
 
 plotOverviewDimsWithColor <- function(d, clr, cex, alpha) {
+  flt <- !is.na(d[,1]) & !is.na(d[,2])
   if(is.factor(clr))
-    EmbedSOM::PlotEmbed(d, clust=clr, cex=cex, alpha=alpha, plotf=scattermoreplot)
+    EmbedSOM::PlotEmbed(d[flt,], clust=clr[flt], cex=cex, alpha=alpha, plotf=scattermoreplot)
   else if(is.numeric(clr))
-    EmbedSOM::PlotEmbed(d, data=cbind(Val=clr), value='Val', cex=cex, alpha=alpha, plotf=scattermoreplot)
+    EmbedSOM::PlotEmbed(d[flt,], data=cbind(Val=clr[flt]), value='Val', cex=cex, alpha=alpha, plotf=scattermoreplot)
   else if(is.character(clr) && length(clr)==1 && clr == '(Black)')
-    EmbedSOM::PlotEmbed(d, col=rgb(0,0,0,alpha), cex=cex, plotf=scattermoreplot)
+    EmbedSOM::PlotEmbed(d[flt,], col=rgb(0,0,0,alpha), cex=cex, plotf=scattermoreplot)
   else if(is.character(clr) && length(clr)==1 && clr == '(Density)')
-    EmbedSOM::PlotEmbed(d, cex=cex, alpha=alpha, plotf=scattermoreplot)
+    EmbedSOM::PlotEmbed(d[flt,], cex=cex, alpha=alpha, plotf=scattermoreplot)
   else
     warning("missing overview color plot implementation")
 }
 
 plotOverviewHist <- function(d, vertical) {
+    d <- d[!is.na(d)]
     dlim <- c(min(d),max(d))
     bw <- 0.05 * (dlim[2]-dlim[1])
     dens <- density(d, from=dlim[1], to=dlim[2], width=bw)
@@ -88,7 +90,6 @@ plotOverview <- function(ds, markersH, markersV, markerColor, cex, alpha) {
       )
     )
 
-    #TODO: filter NAs here
     plotOverviewHist(gatherOverviewPlotDim(ds, markersH[i]), vertical=F)
     mtext(markersH[i], side=3)
   }
