@@ -15,13 +15,10 @@ reactiveValsForeign <- function()
   )
 
 renderForeign <- function(foreign) {
-  res <- tagList()
+  div(
+    tooltip("Send your local files to ShinySOM storage.",
+      h1("Upload data")),
 
-  res <- tagAppendChild(res,
-    h1("Upload data")
-  )
-
-  res <- tagAppendChild(res,
     p("Currently uploading to ",
       strong(foreign$up.root),
       " subdirectory: `",
@@ -31,20 +28,15 @@ renderForeign <- function(foreign) {
         'Change folder',
         'Select a folder for uploading files',
         FALSE)
-    )
-  )
+    ),
 
-  res <- tagAppendChild(res,
     fileInput("fileUpload",
-      "Choose a file to upload",
-      multiple=T)
-  )
+      "Choose files to upload",
+      multiple=T),
 
-  res <- tagAppendChild(res,
-    h1("Download results")
-  )
+    tooltip("Get files, results, datasets and tables from ShinySOM storage.",
+      h1("Download results")),
 
-  res <- tagAppendChild(res,
     p(
       shinyFilesButton('downfiles',
         'Select files',
@@ -53,8 +45,6 @@ renderForeign <- function(foreign) {
       uiOutput("foreignDownload")
     )
   )
-
-  res
 }
 
 render_foreignDownload <- function(fs) {

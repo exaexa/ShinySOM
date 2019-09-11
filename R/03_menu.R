@@ -4,16 +4,16 @@ renderMenu <- function(ws) {
   names(choices) <- ws$datasets
 
   fluidRow(
-    div("Choices:"), #TODO: replace this with some better sep
-    ilDiv(actionButton("menuCreate", "New dataset")),
-    ilDiv(actionButton("menuForeign", "Upload/Download data")),
+    div(style="margin-top:1em;"),
+    ilDiv(actionButton("menuCreate", "✰ New dataset")),
+    ilDiv(actionButton("menuForeign", "⮃ Upload/Download data")),
     ilDiv("Dataset: "),
     ilDiv(style='vertical-align: top',
       selectInput("pageId", label=NULL,
         selected=isolate(ws$page),
         choices=choices)),
-    ilDiv(actionButton("menuOpen", "Open")),
-    ilDiv(actionButton("menuSave", "Save current"))
+    ilDiv(actionButton("menuOpen", "⤵ Open")),
+    ilDiv(actionButton("menuSave", "💾 Save current"))
   )
 }
 
