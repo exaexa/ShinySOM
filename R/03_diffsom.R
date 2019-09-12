@@ -140,7 +140,7 @@ diffsomRenderEmbedding <- function(ds) {
       tooltip("Choose the X and Y sizes of SOM. The SOM will be able to approximate roughly X*Y different clusters. Larger SOMs capture more details, but take longer to compute.",
       sliderInput('dsEmbedXdim', "SOM nodes X", value=isolate(if(is.null(ds$xdim)) 16 else ds$xdim), min=2, max=50, step=1)),
       sliderInput('dsEmbedYdim', "SOM nodes Y", value=isolate(if(is.null(ds$ydim)) 16 else ds$ydim), min=2, max=50, step=1),
-      tooltip("How many times the data will be presented to SOM, larger values may produce a better fitting SOM for the cost of computation time. Increase the value slightly for less than 10.000 cells. For datasets over 100.000 cells, the value can be safely decreased.",
+      tooltip("How many times the data will be presented to SOM, larger values may produce a better fitting SOM for the cost of computation time. Increase the value slightly if working with less than 10.000 cells. For datasets over 100.000 cells, the value can be safely decreased. Generally, epochs*cells should be at least 100.000.",
       sliderInput('dsEmbedRlen', "SOM epochs", value=isolate(if(is.null(ds$rlen)) 10 else ds$rlen), min=1, max=100, step=1)),
       tooltip("Random seed for SOM training. Choose a different value to train a different SOM.",
       numericInput('dsEmbedSeed', "Random seed", value=isolate(if(is.null(ds$seed)) 1 else ds$seed), min=0, max=999999999, step=1)),
@@ -243,7 +243,7 @@ diffsomRenderClustering <- function(ds) {
 
 diffsomRenderClusterHeat <- function(ds) {
   if(is.null(ds$hclust)) div()
-  else tooltip("Choose markers/data columns that should appear in the dendrogram. The view helps with classifying the related cell subsets.",
+  else tooltip("Choose markers/data columns that will appear in the dendrogram. The view helps with precisely classifying the related cell populations.",
     selectInput("dsClusterHeat", "Heatmap columns",
     choices=unname(ds$colsToUse),
     multiple=T,
@@ -272,63 +272,77 @@ diffsomRenderAnalysis <- function(ds) {
 }
 
 diffsomRenderAHeat <- function() {
-  plotOutput('plotDsAHeat', width='100%', height='70em')
+  div(
+    tooltip("Heatmap shows relative amount of population cells in the files. The data is converted to percentages for each file, then normalized again for populations to allow comparison.",
+    h2("Relative cell count heatmap")),
+    plotOutput('plotDsAHeat', width='100%', height='65em')
+  )
 }
 
 diffsomRenderADiff <- function(ds) {
   if(is.null(ds$e))
     p("Embed the population first")
   else fluidRow(
-    column(2,
+    column(3,
+      tooltip("This display allows quick visual comparison of cell population presence and properties between file groups.",
+      h2("Compare file groups")),
+      tooltip("Only cells from selected files will be shown on the left/right plots.",
       pickerInput('dsADiffFilesLeft',
         'Left',
         choices=ds$files,
-        multiple=T),
+        multiple=T)),
       pickerInput('dsADiffFilesRight',
         'Right',
         choices=ds$files,
         multiple=T),
+      tooltip("Points will be colored accordingly to the chosen marker/column.",
       pickerInput('dsADiffColor',
         'Color',
         choices=c('(density)',
-                  if(is.null(ds$annotation)) NULL else '(cluster)',
+                  if(is.null(ds$clust)) NULL else '(cluster)',
                   '(file)',
                   unname(ds$prettyColnames)),
         multiple=F,
-        selected='(density)'),
+        selected='(density)')),
       sliderPointSize('dsADiffCex'),
       sliderAlpha('dsADiffAlpha')
     ),
-    column(5,
+    column(4,
       plotOutput('plotDsADiffL', width='30em', height='30em')
     ),
-    column(5,
+    column(4,
       plotOutput('plotDsADiffR', width='30em', height='30em')
     )
   )
 }
 
-#TODO: paired possibility (any reasonable way to assign the pairs in Shiny?)
+#TODO: paired possibility (any reasonable way to assign the pair permutations in Shiny?)
 diffsomRenderASignificance <- function(ds) {
   if(is.null(ds$e))
     p("Embed the population first")
   else fluidRow(
     column(3,
+      tooltip("Significance plots give quick informative overview of statistically relevant changes in relative cell abundance in files for each population. The clusters of selected granularity are painted blue (if the selected experiment file group has significantly less cells than the control group) or orange (if it has significantly more cells).",
+      h2("Test population size difference")),
+      tooltip("Samples that will be used as a baseline for testing.",
       pickerInput('dsASigControl',
         'Control sample group',
         choices=ds$files,
-        multiple=T),
+        multiple=T)),
+      tooltip("Experiment-group samples will be tested for differences against the baseline group.",
       pickerInput('dsASigExperiment',
         'Experiment sample group',
         choices=ds$files,
-        multiple=T),
+        multiple=T)),
+      tooltip("SOM-based granularity tests abundance of cells in neighborhood of each single SOM node, thus giving better view of small (possibly irrelevant) changes. Cluster-based granularity tests whole manually annotated populations.",
       selectInput('dsASigGran', label='Granularity',
         choices=c(
           'SOM',
           if(is.null(ds$clust)) NULL else 'Clusters'),
         selected='SOM',
-        multiple=F),
-      sliderInput('dsASigPow', "significance transform", value=10, min=0.1, max=30),
+        multiple=F)),
+      tooltip("P-values obtained from testing are converted to color gradient position as (1-p)^transform. Default value 10 puts the reasonable p-value 0.05 to around half of the color scale. Low values exaggerate the differences, producing colors for even relatively insignificant changes.",
+      sliderInput('dsASigPow', "Significance transform", value=10, min=0.1, max=30)),
       sliderPointSize('dsASigCex'),
       sliderAlpha('dsASigAlpha')
     ),
@@ -349,14 +363,16 @@ diffsomRenderGating <- function(ds) {
   if(is.null(ds$annotation) || is.null(ds$clust))
     p("Cluster and annotate the populations first.")
   else div(
-    h3("Create population subsets"),
+    tooltip("This step is usually called 'gating'. Selected populations will be collected to form a new dataset.",
+    h3("Create population subsets")),
     pickerInput("dsGateClusters",
       "Populations in the new dataset",
       choices=namesInvert(ds$annotation),
       multiple=T,
       options=list(size=10)),
     textInput("dsGateNewName", "New dataset name", placeholder="Enter name"),
-    actionButton("dsGateDoGate", "Create dataset")
+    tooltip("Exporting the data should take several seconds. The new dataset will become available in the selection above.",
+    actionButton("dsGateDoGate", "Create dataset"))
   )
 }
 
@@ -368,14 +384,21 @@ diffsomRenderExport <- function(ds) {
   div(
     h3("Export population statistics"),
     if(is.null(ds$annotation) || is.null(ds$clust)) p("Cluster and annotate the populations first.")
-    else shinySaveButton("dsExportPops", "Population cell counts CSV", "Save a the population cell counts", filename='populations.csv'),
+    else tooltip("This exports a table where the cell count is computed for each gated population (in columns) in each file (in rows).",
+      shinySaveButton("dsExportPops", "Population cell counts CSV", "Save a the population cell counts", filename='populations.csv')),
+
     h3("Export DiffSOM objects"),
     if(is.null(ds$map)) p("Compute SOM for exporting it first")
-    else shinySaveButton("dsExportDSMap", "DiffSOM map RDS", "Save the DiffSOM MAP RDS", filename='map.RDS'),
-    shinySaveButton("dsExportDSObj", "DiffSOM object RDS", "Save DiffSOM Object RDS", filename='dataset.RDS'),
+    else tooltip("The exported file can be imported to DiffSOM using readRDS, and used as map= argument of function Embed().",
+      shinySaveButton("dsExportDSMap", "DiffSOM map RDS", "Save the DiffSOM MAP RDS", filename='map.RDS')),
+
+    #shinySaveButton("dsExportDSObj", "DiffSOM object RDS", "Save DiffSOM Object RDS", filename='dataset.RDS'),
+
     h3("Different export formats"),
-    shinySaveButton("dsExportFCS", "Export FCS", "Save Flow Cytometry Standard export file", filename='export.fcs'),
-    shinySaveButton("dsExportCSV", "Export CSV", "Save CSV export", filename='export.csv')
+    tooltip("Export FCS file with the embedding and population assignment.",
+      shinySaveButton("dsExportFCS", "Export FCS", "Save Flow Cytometry Standard (FCS) file", filename='export.fcs')),
+    tooltip("Same as FCS export, but the data are saved in CSV. File format is trivially readable, but may be several times larger than the corresponding FCS.",
+    shinySaveButton("dsExportCSV", "Export CSV", "Save CSV export", filename='export.csv'))
   )
 }
 
@@ -556,7 +579,8 @@ serveDiffsom <- function(ws, ds, input, output) {
         input$dsADiffColor,
         ds$files, ds$data, ds$cellFile, ds$e,
         ds$prettyColnames,
-        ds$annotation[ds$clust[ds$map$mapping[,1]]],
+        ds$clust[ds$map$mapping[,1]],
+        ds$annotation,
         input$dsADiffAlpha,
         input$dsADiffCex)
   })
@@ -568,7 +592,8 @@ serveDiffsom <- function(ws, ds, input, output) {
         input$dsADiffColor,
         ds$files, ds$data, ds$cellFile, ds$e,
         ds$prettyColnames,
-        ds$annotation[ds$clust[ds$map$mapping[,1]]],
+        ds$clust[ds$map$mapping[,1]],
+        ds$annotation,
         input$dsADiffAlpha,
         input$dsADiffCex)
   })
@@ -624,7 +649,7 @@ serveDiffsom <- function(ws, ds, input, output) {
 
   shinyFileSave(input, "dsExportPops", roots=getForeignRoots())
   shinyFileSave(input, "dsExportDSMap", roots=getForeignRoots())
-  shinyFileSave(input, "dsExportDSObj", roots=getForeignRoots())
+  #shinyFileSave(input, "dsExportDSObj", roots=getForeignRoots())
   shinyFileSave(input, "dsExportFCS", roots=getForeignRoots())
   shinyFileSave(input, "dsExportCSV", roots=getForeignRoots())
 
@@ -633,10 +658,98 @@ serveDiffsom <- function(ws, ds, input, output) {
     if(dim(outpath)[1]==1) {
       d <- table(data.frame(File=ds$files[ds$cellFile], Annotation=ds$annotation[ds$clust[ds$map$mapping[,1]]]))
       write.csv(d, outpath$datapath)
-      showNotification(type='message', "Population export saved.")
+      showNotification(type='message', "Population export CSV saved.")
     }
   })
 
-  observeEvent(input$dsExportDSMap, { #TODO: this.
+  observeEvent(input$dsExportDSMap, {
+    outpath <- parseSavePath(getForeignRoots(), input$dsExportDSMap)
+    if(dim(outpath)[1]==1) {
+      map <- ds$map
+
+      map$importance=rep(1,length(ds$colsToUse))
+      map$colsUsed <- findColIds(ds$colsToUse, ds$prettyColnames)
+      map$nclust <- nlevels(factor(ds$clust))
+      map$clust <- as.numeric(factor(ds$clust))
+      map$clust[is.na(map$clust)] <- 0
+
+      saveRDS(map, outpath$datapath)
+      showNotification(type='message', "DiffSOM map saved.")
+    }
+  })
+
+  if(F) { #TODO: Implement this (now it's better to just export the map)
+    observeEvent(input$dsExportDSObj, {
+      outpath <- parseSavePath(getForeignRoots(), input$dsExportDSObj)
+      if(dim(outpath)[1]==1) {
+        showNotification(type='message', "DiffSOM object export is not implemented yet.")
+      }
+    })
+  }
+
+  observeEvent(input$dsExportFCS, {
+    outpath <- parseSavePath(getForeignRoots(), input$dsExportFCS)
+    if(dim(outpath)[1]==1) {
+      df <- data.frame(ds$data, CellFile=ds$cellFile)
+      descs <- c(ds$prettyColnames, "File ID")
+
+      if(!is.null(ds$embed)) {
+        df <- cbind(df,
+          EmbedSOM1=ds$embed[,1],
+          EmbedSOM2=ds$embed[,2]
+        )
+        descs <- c(descs, 'EmbedSOM 1', 'EmbedSOM 2')
+      }
+
+      if(!is.null(ds$map)) {
+        df <- cbind(df,
+          SOM1=1+((ds$map$mapping[,1]-1) %% ds$xdim),
+          SOM2=1+as.integer((ds$map$mapping[,1]-1) / ds$xdim)
+        )
+        descs <- c(descs, 'SOM vertex 1', 'SOM vertex 2')
+      }
+
+      if(!is.null(ds$clust)) {
+        cl <- as.numeric(factor(ds$clust[ds$map$mapping[,1]]))
+        cl[is.na(cl)] <- 0
+        df <- cbind(df, Cluster=cl)
+        descs <- c(descs, 'Population ID')
+      }
+
+      ff <- new('flowFrame', exprs=as.matrix(df))
+      ff@parameters@data[,'desc'] <- descs #magic!!
+      flowCore::write.FCS(ff, outpath$datapath)
+      showNotification(type='message', "FCS file exported")
+    }
+  })
+
+  observeEvent(input$dsExportCSV, {
+    outpath <- parseSavePath(getForeignRoots(), input$dsExportCSV)
+    if(dim(outpath)[1]==1) {
+      df <- data.frame(ds$data, CellFile=ds$cellFile)
+      colnames(df)[seq_len(length(ds$prettyColnames))] <- ds$prettyColnames
+
+      if(!is.null(ds$embed))
+        df <- cbind(df,
+          EmbedSOM1=ds$embed[,1],
+          EmbedSOM2=ds$embed[,2]
+        )
+
+      if(!is.null(ds$map))
+        df <- cbind(df,
+          SOM1=1+((ds$map$mapping[,1]-1) %% ds$xdim),
+          SOM2=1+as.integer((ds$map$mapping[,1]-1) / ds$xdim)
+        )
+
+      if(!is.null(ds$clust)) {
+        cl <- as.numeric(factor(ds$clust[ds$map$mapping[,1]]))
+        df <- cbind(df, ClusterKey=cl)
+        if(!is.null(ds$annotation))
+          df <- cbind(df, Population=ds$annotation[cl])
+      }
+
+      write.csv(df, outpath$datapath)
+      showNotification(type='message', "CSV file exported")
+    }
   })
 }

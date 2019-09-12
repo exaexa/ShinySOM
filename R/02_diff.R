@@ -1,5 +1,5 @@
 
-plotDsADiff <- function(fns, color, files, data, cellFile, e, prettyColnames, annotation, alpha, cex) {
+plotDsADiff <- function(fns, color, files, data, cellFile, e, prettyColnames, clust, annotation, alpha, cex) {
 
   filter <- files[cellFile]%in%fns
 
@@ -14,22 +14,19 @@ plotDsADiff <- function(fns, color, files, data, cellFile, e, prettyColnames, an
       frame.plot=F)
   }
   else if (color=='(cluster)') {
-    annotation <- factor(annotation)
-    anns <- levels(annotation)
-    centers <- t(sapply(anns, function(ann)
-      apply(e[annotation==ann,], 2, median)
-    ))
+
+    cl <- factor(clust)
 
     EmbedSOM::PlotEmbed(
       e[filter,],
-      clust=as.numeric(annotation)[filter],
-      nclust=length(anns),
+      clust=as.numeric(cl)[filter],
+      nclust=nlevels(cl),
       plotf=scattermoreplot,
       cex=cex,
       alpha=alpha,
       frame.plot=F)
 
-    text(centers, anns)
+    plotClusterTextAnnotation(e, cl, annotation)
   }
   else if (color=='(file)') {
     file <- factor(cellFile)
