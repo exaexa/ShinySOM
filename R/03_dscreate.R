@@ -5,16 +5,19 @@
 
 renderDsCreate <- function(dsCreate) {
   div(
-    h1('Create datasets'),
+    tooltip("A ShinySOM dataset is similar to FlowSOM `fsom` data object: it contains the data, and some analysis-related information (e.g. the SOM and clustering data)",
+    h1('Create datasets')),
 
     h3('1. Select files'),
+
+    tooltip("The selected FCS files will be aggregated and used for the analysis",
     p(
       shinyFilesButton('dsCreateFiles',
       'Select dataset files',
       'Choose FCS files',
       multiple=T),
       uiOutput('dsCreateFileNumber')
-    ),
+    )),
 
     h3('2. Scale, Transform, Sample'),
     uiOutput('dsCreateNormalize'),
@@ -38,9 +41,11 @@ renderDsCreateNormalize <- function(fs) {
 
     res <- tagAppendChild(res,
       fluidRow(column(4,
-          uiOutput('dsCreateLoadColsUi')
+          tooltip("You may choose data columns that are to be imported to the dataset. This is useful for dumping irrelevant information (e.g. redundant scatter information from multiple lasers, Time, and remains from barcoding).",
+          uiOutput('dsCreateLoadColsUi'))
         ),
-        column(4, div(
+        column(4,
+          tooltip("The parameters correspond to FlowSOM scaling, transformation and compensation parameters.",
           checkboxGroupInput('dsCreateParams', 'Loading parameters', 
             c(
               'Scale'='scale',
@@ -48,11 +53,13 @@ renderDsCreateNormalize <- function(fs) {
               'Apply compensation'='compensate',
               'Sample cells'='subsample'
             )
-          ),
-          numericInput('dsCreateSubsample', 'Number of cells to sample', min=1, step=1, value=100000)
-        )),
+          )),
+          tooltip("You may want to downsample the dataset to under 1 million cells, in order to improve the interface responsiveness and reduce memory usage. The same analysis can later be applied to full datasets.",
+          numericInput('dsCreateSubsample', 'Number of cells to sample', min=1, step=1, value=200000))
+        ),
         column(4,
-          uiOutput('dsCreateToTransformUi')
+          tooltip("Loading and aggregating the data may take several tens of seconds, depending on the dataset size.",
+          uiOutput('dsCreateToTransformUi'))
         )
       )
     )
@@ -69,8 +76,10 @@ renderDsCreateFinalize <- function(fs, cols, dsCreate) {
   path1 <- fs$files[[names(fs$files)[1]]]
   file1 <- path1[[length(path1)]]
   div(
-    textInput('dsCreateName', 'Dataset name', value=file1),
-    actionButton('dsCreateDoIt', 'Create dataset')
+    tooltip("Choose a simple desriptive name of the dataset, e.g. 'Spleen - all cells'",
+    textInput('dsCreateName', 'Dataset name', value=file1)),
+    tooltip("Loading and aggregating the data may take several tens of seconds, depending on the dataset size.",
+    actionButton('dsCreateDoIt', 'Create dataset'))
   )
 }
 
