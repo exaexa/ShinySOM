@@ -1,5 +1,5 @@
 
-infoSign <- '💭'
+infoSign <- '\ud83d\udcad'
 
 tooltip <- function(text, elem, pos='bottom') {
   div(

@@ -530,6 +530,7 @@ serveDiffsom <- function(ws, ds, input, output) {
   })
 
   output$plotDsClustEmbed <- renderPlot({
+    if(!is.null(ds$clust))
     plotClustEmbed(
       ds$e,
       ds$clust[ds$map$mapping[,1]],
