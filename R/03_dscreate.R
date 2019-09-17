@@ -49,8 +49,6 @@ renderDsCreateNormalize <- function(fs) {
           checkboxGroupInput('dsCreateParams', 'Loading parameters', 
             c(
               'Scale'='scale',
-              'Transform'='transform',
-              'Apply compensation'='compensate',
               'Sample cells'='subsample'
             )
           )),
@@ -96,6 +94,20 @@ dsCreateFiles <- function(fs) {
 }
 
 #
+# Convert labels from loader functions to pretty column names, resolve duplicates
+#
+
+dsCreatePrettyColnames <- function(loaded) {
+  res <- loaded$cols
+  res[!is.na(loaded$labels)] <- paste0(loaded$labels, ' (', loaded$cols, ')')[!is.na(loaded$labels)]
+  nums <- table(res)
+  flt <- nums[res]>1
+  flt[is.na(flt)] <- FALSE
+  res[flt] <- paste0(res, '/', seq_len(length(res)))[flt]
+  res
+}
+
+#
 # Actual loading function that reads the files and puts the dataset into the workspace
 #
 
@@ -105,28 +117,40 @@ dsCreateDoLoad <- function(name, fs, params, subsample, colsToLoad, colsToTransf
 
   fns <- dsCreateFiles(fs)
 
-  fs <- FlowSOM::ReadInput(
-    FlowSOM::AggregateFlowFrames(
-      fns,
-      cTotal=if('subsample' %in% params) subsample else NULL,),
-    scale='scale' %in% params,
-    transform='transform' %in% params,
-    compensate='compensate' %in% params,
-    toTransform=findColIds(colsToTransform, prettyCols))
 
-  nds <- list()
+  withProgress(message='Aggregating FCS files', value=1, min=1, max=length(fns)+1, {
+    data <- loadFCSAggregate(fns,
+      if('subsample' %in% params) subsample else NULL,
+      findColIds(colsToTransform, prettyCols))
 
-  nds$files <- fns #TODO: normalize the names a bit
 
-  nds$cellFile <- as.numeric(factor(fs$data[,'File']))
+    ds <- list()
 
-  colSel <- findColIds(colsToLoad, prettyCols)
+    ds$files <- gsub('\\.fcs$','', gsub('.*/','',fns)) #TODO: perhaps leave in some directory info?
+    ds$cellFile <- data$cellFile
+    ds$prettyColnames <- dsCreatePrettyColnames(data)
 
-  nds$data <- fs$data[,colSel]
+    colSel <- findColIds(colsToLoad, ds$prettyColnames)
+    ds$data <- data$exprs[,colSel]
+    ds$prettyColnames <- ds$prettyColnames[colSel]
 
-  nds$prettyColnames <- fs$prettyColnames[colSel]
+    # remove possible NaNs and NAs
+    setProgress('Cleaning...', value=length(fns)+1)
+    ds$data[is.nan(ds$data)] <- NA
+    ds$data <- ds$data[apply(!is.na(ds$data), 1, all),]
 
-  saveDataset(workspace, name, nds)
+    if('scale' %in% params) {
+      setProgress('Scaling...', value=length(fns)+1)
+      sds <- apply(ds$data,2,sd)
+      sds[sds==0]<-1 #avoid ugly NaNs from constant columns
+      ds$data <- scale(ds$data, scale=sds)
+    }
+
+    colnames(ds$data) <- ds$prettyColnames
+    
+    setProgress('Creating dataset', value=length(fns)+1)
+    saveDataset(workspace, name, ds)
+  })
 }
 
 #
@@ -135,7 +159,9 @@ dsCreateDoLoad <- function(name, fs, params, subsample, colsToLoad, colsToTransf
 
 dsCreateLoadPrettyCols <- function(fs) {
   fn <- dsCreateFiles(fs)[1]
-  FlowSOM::ReadInput(fn)$prettyColnames
+  meta <- loadFCSColnames(fn)
+
+  dsCreatePrettyColnames(meta)
 }
 
 #

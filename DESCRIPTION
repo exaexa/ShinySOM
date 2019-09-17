@@ -8,7 +8,7 @@ Authors@R: c(person("Mirek", "Kratochvil",
 Author: Mirek Kratochvil
 Maintainer: Mirek Kratochvil <exa.exa@gmail.com>
 Depends:
-    R (>= 3.2), EmbedSOM, FlowSOM, flowCore, scattermore, tidyr, ggplot2, cowplot, tools, shiny, shinyFiles, shinyWidgets, shinyDendro
+    R (>= 3.2), EmbedSOM, flowCore, scattermore, tidyr, ggplot2, cowplot, tools, shiny, shinyFiles, shinyWidgets, shinyDendro
 Description: Allows executing the DiffSOM workflow in a nice, user-oriented web
     interface. Particularly useful for analyzing data in cloud.
 License: GPL (>= 3)
