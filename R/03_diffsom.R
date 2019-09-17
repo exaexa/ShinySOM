@@ -227,7 +227,7 @@ diffsomRenderClustering <- function(ds) {
     column(4,
       tooltip("Use the shinyDendro interface for assigning labels to dendrogram branches. Click the interface to focus it; then use keyboard keys (a-z, 1-9) to choose a cluster mark; then click a branch to assign the mark. Use Space to erase the marks.",
       h4("Cluster assignment")),
-      shinyDendroOutput("dsClustDendro", width='100%', height='50em')
+      shinyDendroOutput("dsClustDendro", width='100%', height=paste0(max(500, 2*ds$map$xdim*ds$map$ydim),'px'))
     ),
     column(4,
       tooltip("This is a rough preview of how the cell classification looks in the embedding. Use the overview scatterplots below to obtain more precise views.",
@@ -430,6 +430,7 @@ serveDiffsom <- function(ws, ds, input, output) {
 
   observeEvent(input$dsEmbedDoSOM, {
     set.seed(ds$seed)
+    showNotification("Computing SOM. This may take a while...")
     ds$map <- EmbedSOM::SOM(
       data=ds$data[,findColIds(ds$colsToUse, ds$prettyColnames)],
       xdim=ds$xdim,
@@ -438,6 +439,10 @@ serveDiffsom <- function(ws, ds, input, output) {
       negAlpha=0,
       negRadius=1)
     ds$e <- NULL
+    ds$clust <- NULL
+    ds$hclust <- NULL
+    ds$annotation <- NULL
+    showNotification(type='message', "SOM ready.")
   })
 
   output$uiDsEmbedParams <- renderUI({
@@ -464,6 +469,7 @@ serveDiffsom <- function(ws, ds, input, output) {
 
   observeEvent(input$dsEmbedDoEmbed, {
     if(!is.null(ds$map)) {
+      showNotification("Embedding the dataset. This should generally be around 5x faster than SOM.")
       ds$e <- EmbedSOM::EmbedSOM(
         data=ds$data[,findColIds(ds$colsToUse, ds$prettyColnames)],
         map=ds$map,
@@ -471,7 +477,9 @@ serveDiffsom <- function(ws, ds, input, output) {
         adjust=ds$adjust,
         k=ds$k,
         emcoords=ds$emcoords)
-      }
+      showNotification(type='message', "Embedding ready.")
+    } else
+      showNotification(type='warning', "SOM is not computed yet!")
   })
 
   output$uiDsEmbedEView <- renderUI({

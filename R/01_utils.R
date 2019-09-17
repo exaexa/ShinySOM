@@ -44,13 +44,17 @@ getHeatmapColors <- function(ds, colors) {
 }
 
 plotClusterTextAnnotation <- function(e, cl, annotation, centerFunction=median, ...) {
-  if(is.null(cl) || all(is.na(cl))) return
+  if(is.null(cl)) return
 
   if(!is.factor(cl)) cl <- factor(cl)
-  centers <- t(sapply(levels(cl),
-    function(x) apply(e[!is.na(cl) & cl==x,], 2, centerFunction)))
 
-  text(centers, annotation[levels(cl)], ...)
+  centers <- t(sapply(levels(cl),
+    function(x)
+      apply(e[!is.na(cl) & cl==x,], 2, centerFunction)
+  ))
+
+  if(nlevels(cl)>0)
+    text(centers, annotation[levels(cl)], ...)
 }
 
 pad.zero <- function(v, l) {

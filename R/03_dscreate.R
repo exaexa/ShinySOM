@@ -45,14 +45,14 @@ renderDsCreateNormalize <- function(fs) {
           uiOutput('dsCreateLoadColsUi'))
         ),
         column(4,
-          tooltip("The parameters correspond to FlowSOM scaling, transformation and compensation parameters.",
+          tooltip("Normalizing the columns fixes all markers to have the same variance, and therefore similar impact on automated clustering. Subsampling the cells makes the dataset smaller and all computations (and plotting) faster.",
           checkboxGroupInput('dsCreateParams', 'Loading parameters', 
             c(
-              'Scale'='scale',
-              'Sample cells'='subsample'
+              'Normalize all dataset columns'='scale',
+              'Reduce the dataset by subsampling'='subsample'
             )
           )),
-          tooltip("You may want to downsample the dataset to under 1 million cells, in order to improve the interface responsiveness and reduce memory usage. The same analysis can later be applied to full datasets.",
+          tooltip("You may want to downsample the dataset to under 1 million cells, in order to improve the interface responsiveness and reduce memory usage. The conducted analysis can later be applied to full datasets.",
           numericInput('dsCreateSubsample', 'Number of cells to sample', min=1, step=1, value=200000))
         ),
         column(4,
