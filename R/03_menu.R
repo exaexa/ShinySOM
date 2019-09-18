@@ -21,11 +21,13 @@ setMenuDataset <- function(dsid, ws,ds) {
     if(dsid!=ws$page && dsid!="") {
     if(ws$page %in% ws$datasets) {
       print("saving dataset...")
+      showMessage("Saving...")
       saveDataset(ws, ws$page, dsGetDataset(ds))
     }
     ws$page <- dsid
     if(ws$page %in% ws$datasets) {
       print("loading dataset...")
+      showMessage("Loading...")
       dsInitFromDataset(ds, loadDataset(ws$page))
     }
   }
@@ -39,8 +41,9 @@ serveMenu <- function(ws, ds, input, output) {
   observeEvent(input$menuSave, {
     if(input$pageId == ws$page && ws$page %in% ws$datasets) {
       print("saving dataset explicitly...")
+      showMessage("Saving...")
       saveDataset(ws, ws$page, dsGetDataset(ds))
-      showNotification(type='message', "Dataset file saved.")
+      showNotification(type='message', "Dataset saved.")
     }
   })
 }

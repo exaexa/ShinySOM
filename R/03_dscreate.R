@@ -19,7 +19,7 @@ renderDsCreate <- function(dsCreate) {
       uiOutput('dsCreateFileNumber')
     )),
 
-    h3('2. Scale, Transform, Sample'),
+    h3('2. Select data and sample cells'),
     uiOutput('dsCreateNormalize'),
 
     h3('3. Create dataset'),
@@ -48,16 +48,11 @@ renderDsCreateNormalize <- function(fs) {
           tooltip("Normalizing the columns fixes all markers to have the same variance, and therefore similar impact on automated clustering. Subsampling the cells makes the dataset smaller and all computations (and plotting) faster.",
           checkboxGroupInput('dsCreateParams', 'Loading parameters', 
             c(
-              'Normalize all dataset columns'='scale',
               'Reduce the dataset by subsampling'='subsample'
             )
           )),
           tooltip("You may want to downsample the dataset to under 1 million cells, in order to improve the interface responsiveness and reduce memory usage. The conducted analysis can later be applied to full datasets.",
           numericInput('dsCreateSubsample', 'Number of cells to sample', min=1, step=1, value=200000))
-        ),
-        column(4,
-          tooltip("Loading and aggregating the data may take several tens of seconds, depending on the dataset size.",
-          uiOutput('dsCreateToTransformUi'))
         )
       )
     )
@@ -111,7 +106,7 @@ dsCreatePrettyColnames <- function(loaded) {
 # Actual loading function that reads the files and puts the dataset into the workspace
 #
 
-dsCreateDoLoad <- function(name, fs, params, subsample, colsToLoad, colsToTransform, prettyCols, workspace) {
+dsCreateDoLoad <- function(name, fs, params, subsample, colsToLoad, prettyCols, workspace) {
   if(!datasetNameValid(name)) stop('Invalid dataset name')
   if(datasetExists(workspace, name)) stop('Dataset of same name already exists')
 
@@ -120,8 +115,7 @@ dsCreateDoLoad <- function(name, fs, params, subsample, colsToLoad, colsToTransf
 
   withProgress(message='Aggregating FCS files', value=1, min=1, max=length(fns)+1, {
     data <- loadFCSAggregate(fns,
-      if('subsample' %in% params) subsample else NULL,
-      findColIds(colsToTransform, prettyCols))
+      if('subsample' %in% params) subsample else NULL)
 
 
     ds <- list()
@@ -212,23 +206,6 @@ serveDsCreate <- function(workspace, input, output) {
     )
   })
 
-  output$dsCreateToTransformUi <- renderUI({
-    ch <- input$dsCreateLoadCols
-    choices <- as.list(ch)
-    names(choices) <- ch
-    pickerInput(
-      inputId = 'dsCreateToTransform', 
-      label = 'Columns to transform', 
-      choices = ch,
-      options = list(
-        `actions-box` = TRUE, 
-        size = 10,
-        `selected-text-format` = 'count > 2'
-      ), 
-      multiple = TRUE
-    )
-  })
-
   #
   # Loading button + debounce
   #
@@ -248,7 +225,6 @@ serveDsCreate <- function(workspace, input, output) {
             input$dsCreateParams,
             input$dsCreateSubsample,
             input$dsCreateLoadCols,
-            input$dsCreateToTransform,
             prettyCols(),
             workspace)
           showNotification(type='message',

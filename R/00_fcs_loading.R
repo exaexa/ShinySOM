@@ -35,7 +35,7 @@ loadFCSTryCompensate <- function(ff, progress) {
   ff # didn't find anything
 }
 
-loadFCSAggregate <- function(fileNames, cells, transformColNums) {
+loadFCSAggregate <- function(fileNames, cells) {
   nf <- length(fileNames)
   cf <- ceiling(cells/nf)
 
@@ -54,15 +54,6 @@ loadFCSAggregate <- function(fileNames, cells, transformColNums) {
       files <- c(files, rep(i, ns))
       
       ff <- loadFCSTryCompensate(ff, i)
-
-      if(!is.null(transformColNums)) {
-        #TODO: remove this and use a separate transform editor later
-        setProgress('Transforming...', value=i)
-
-        ff <- flowCore::transform(ff,
-          flowCore::transformList(ff@parameters@data$name[transformColNums],
-            tfun=flowCore::logicleTransform()))
-      }
 
       setProgress('Aggregating...', value=i)
       if(is.null(ffs))

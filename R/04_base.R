@@ -37,7 +37,7 @@ loadDataset <- function(name) {
   readRDS(paste0(getDatasetPath(),'/',name,'.shinysom'))
 }
 
-server <- function(input, output) {
+server <- function(input, output, session) {
   workspace <- reactiveValues(datasets=listDatasets(), page='__foreign__')
 
   foreign <- reactiveValsForeign()
@@ -61,7 +61,7 @@ server <- function(input, output) {
   serveMenu(workspace, diffsom, input, output)
   serveForeign(foreign, input, output)
   serveDsCreate(workspace, input, output)
-  serveDiffsom(workspace, diffsom, input, output)
+  serveDiffsom(workspace, diffsom, input, output, session)
 }
 
 #' Run ShinySOM in browser

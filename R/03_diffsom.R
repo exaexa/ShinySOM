@@ -106,11 +106,61 @@ dsGetDataset <- function(ds) {
 renderDiffsom <- function() {
   tabsetPanel(type='tabs',
     tabPanel('Data overview', uiOutput('diffsomOverview')),
+    tabPanel('Transform&Scale', uiOutput('diffsomTransform')),
     tabPanel('Embedding', uiOutput('diffsomEmbedding')),
     tabPanel('Clustering', uiOutput('diffsomClustering')),
     tabPanel('Analysis', uiOutput('diffsomAnalysis')),
     tabPanel('Dissection', uiOutput('diffsomGating')),
     tabPanel('Export data', uiOutput('diffsomExport'))
+  )
+}
+
+#
+# Transformations
+#
+
+diffsomRenderTransform <- function(ds) {
+  choices <- ds$prettyColnames
+  names(choices) <- choices
+
+  trs1 <- unlist(lapply(TRANSFORM_LIST, function(x) x$name))
+  trs <- names(trs1)
+  names(trs) <- unname(trs1)
+  
+  div(
+    h3("Data transformation editor"),
+    fluidRow(
+      column(3,
+        pickerInput('dsTransCols', "Columns to modify",
+          choices=choices,options=list(
+            `actions-box`=TRUE,
+            `selected-text-format` = 'count > 3'
+          ),
+          multiple=T
+        )
+      ),
+      column(3,
+        h4("Transformation parameters"),
+        radioButtons('dsTransTrType', "Transformation type",
+          choices=trs,
+          selected='none' #check this in 00_transforms.R!
+        ),
+        uiOutput('diffsomTransformParams')
+      ),
+      column(3,
+        h4("Scaling"),
+        checkboxInput('dsTransNormalize', "Normalize the column to zero mean and unit variance"),
+        checkboxInput('dsTransDoImportance', "Multiply the values by a constant"),
+        numericInput('dsTransImportance', "Column importance constant", value=1, min=0.01, max=100, step=0.01)
+      ),
+      column(3,
+        h4("Apply transformation"),
+        p("This action modifies the current dataset. If you want to preserve the original data, clone the dataset before applying the transformation. Applying the same transformation twice is usually not recommended."),
+        checkboxInput('dsTransConfirm', "Confirm the modification", value=FALSE),
+        actionButton('dsTransApply', "Apply!")
+      )
+    ),
+    uiOutput('diffsomTransformOverview')
   )
 }
 
@@ -271,11 +321,14 @@ diffsomRenderAnalysis <- function(ds) {
   )
 }
 
-diffsomRenderAHeat <- function() {
+diffsomRenderAHeat <- function(ds) {
   div(
     tooltip("Heatmap shows relative amount of population cells in the files. The data is converted to percentages for each file, then normalized again for populations to allow comparison.",
     h2("Relative cell count heatmap")),
-    plotOutput('plotDsAHeat', width='100%', height='65em')
+    if(is.null(ds$clust) || nlevels(factor(ds$clust))<1 || nlevels(factor(ds$files)) <= 1)
+      p("Heatmap requires at least two files and one cluster.")
+    else
+      plotOutput('plotDsAHeat', width='100%', height='65em')
   )
 }
 
@@ -406,13 +459,38 @@ diffsomRenderExport <- function(ds) {
 # Server
 #
 
-serveDiffsom <- function(ws, ds, input, output) {
+serveDiffsom <- function(ws, ds, input, output, session) {
 
   #
   # Overview tab
   #
 
   overviewServe('diffsomOverview', 'Standalone', ds, input, output)
+
+  #
+  # Transformations tab
+  #
+
+  output$diffsomTransform <- renderUI({
+    diffsomRenderTransform(ds)
+  })
+  
+  overviewServe('diffsomTransformOverview', 'Transform', ds, input, output,
+    title="Transformed data (preview)", previewTransform=T)
+
+  output$diffsomTransformParams <- renderUI(
+    renderTransformParams(input$dsTransTrType)
+  )
+
+  observeEvent(input$dsTransApply, {
+    print("here")
+    if(!is.null(input$dsTransConfirm) && input$dsTransConfirm) {
+      updateCheckboxInput(session=session, inputId='dsTransConfirm', value=F)
+      ds$data <- transformedDsData(ds, input)
+      updatePickerInput(session=session, inputId='dsTransCols', selected=NULL)
+      showNotification(type='message', "Transformation applied.")
+    } else showNotification(type='warning', "Confirmation required!")
+  })
 
   #
   # Embedding tab
@@ -559,7 +637,7 @@ serveDiffsom <- function(ws, ds, input, output) {
   })
 
   output$diffsomAnalysisHeatmap <- renderUI({
-    diffsomRenderAHeat()
+    diffsomRenderAHeat(ds)
   })
 
   output$diffsomAnalysisDiff <- renderUI({

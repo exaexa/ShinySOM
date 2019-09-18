@@ -1,5 +1,4 @@
 
-#TODO: isolate this from ds$clust, ds$map and ds$e updates
 overviewRender <- function(ds, id='', savedSel, title="Overview", defaultColor="(Density)") {
   my <- function(x) paste0(x,"_",id)
 
@@ -77,6 +76,7 @@ overviewRender <- function(ds, id='', savedSel, title="Overview", defaultColor="
 }
 
 overviewRenderPlot <- function(id, ds, size, h, v) {
+  #TODO: previewTransform goes here!
   my <- function(x) paste0(x,"_",id)
   if(h==0 && v==0) "Select markers first."
   else plotOutput(my('plotDsOverview'),
@@ -84,7 +84,7 @@ overviewRenderPlot <- function(id, ds, size, h, v) {
     height=paste0(size*(v+overviewPlotHistMargin),'em'))
 }
 
-overviewServe <- function(element, id='', ds, input, output, ...) {
+overviewServe <- function(element, id='', ds, input, output, previewTransform=F, ...) {
   my <- function(x) paste0(x,"_",id)
 
   savedSel <- reactiveValues(
@@ -113,7 +113,9 @@ overviewServe <- function(element, id='', ds, input, output, ...) {
   })
 
   output[[my('plotDsOverview')]] <- renderPlot({
-    plotOverview(ds, 
+    plotOverview(
+      ds,
+      if(previewTransform) transformedDsData(ds, input) else ds$data,
       input[[my('dsOverviewMarkersH')]],
       input[[my('dsOverviewMarkersV')]],
       input[[my('dsOverviewColor')]],
@@ -122,9 +124,7 @@ overviewServe <- function(element, id='', ds, input, output, ...) {
   })
 
   output[[my('uiDsOverviewPlot')]] <- renderUI({
-    overviewRenderPlot(
-      ds,
-      id=id,
+    overviewRenderPlot(id=id, ds,
       input[[my('dsOverviewSize')]],
       length(input[[my('dsOverviewMarkersH')]]),
       length(input[[my('dsOverviewMarkersV')]]))

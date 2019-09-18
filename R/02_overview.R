@@ -1,7 +1,7 @@
 
 overviewPlotHistMargin <- 0.3
 
-gatherOverviewPlotDim <- function(ds, id) {
+gatherOverviewPlotDim <- function(ds, data, id) {
 
   addScatter <- function(x) (x + rnorm(length(x), sd=0.1))
 
@@ -18,14 +18,14 @@ gatherOverviewPlotDim <- function(ds, id) {
   else if (id=='(Embedding Y)')
     ds$e[,2]
   else if (id %in% ds$prettyColnames)
-    ds$data[,findColIds(id, ds$prettyColnames)]
+    data[,findColIds(id, ds$prettyColnames)]
   else {
     warning(paste("overview dim gathering unknown column:",id))
     NULL
   }
 }
 
-gatherOverviewColorDim <- function(ds, id) {
+gatherOverviewColorDim <- function(ds, data, id) {
   if(id=='(File)')
     factor(ds$cellFile)
   else if (id=='(Cluster)')
@@ -33,7 +33,7 @@ gatherOverviewColorDim <- function(ds, id) {
   else if (id %in% c('(Black)', '(Density)'))
     id
   else if (id %in% ds$prettyColnames)
-    ds$data[,findColIds(id, ds$prettyColnames)]
+    data[,findColIds(id, ds$prettyColnames)]
   else {
     warning(paste("overview color gathering unknown column:",id))
     NULL
@@ -74,13 +74,13 @@ plotOverviewHist <- function(d, vertical) {
       col=rgb(.8,.8,.8), border='black') 
 }
 
-plotOverview <- function(ds, markersH, markersV, markerColor, cex, alpha) {
+plotOverview <- function(ds, data, markersH, markersV, markerColor, cex, alpha) {
   par(xaxt='n', yaxt='n')
   nh <- length(markersH)
   sh <- nh+overviewPlotHistMargin
   nv <- length(markersV)
   sv <- nv+overviewPlotHistMargin
-  colc <- gatherOverviewColorDim(ds, markerColor)
+  colc <- gatherOverviewColorDim(ds, data, markerColor)
 
   for(i in seq_len(nh)) {
     par(mar=c(.1, .1, 1, .1), new=T,
@@ -90,7 +90,7 @@ plotOverview <- function(ds, markersH, markersV, markerColor, cex, alpha) {
       )
     )
 
-    plotOverviewHist(gatherOverviewPlotDim(ds, markersH[i]), vertical=F)
+    plotOverviewHist(gatherOverviewPlotDim(ds, data, markersH[i]), vertical=F)
     mtext(markersH[i], side=3)
   }
   for(i in seq_len(nv)) {
@@ -100,7 +100,7 @@ plotOverview <- function(ds, markersH, markersV, markerColor, cex, alpha) {
         c(nv-i, nv-i+1)/sv
       )
     )
-    plotOverviewHist(gatherOverviewPlotDim(ds, markersV[i]), vertical=T)
+    plotOverviewHist(gatherOverviewPlotDim(ds, data, markersV[i]), vertical=T)
     mtext(markersV[i], side=2)
   }
 
@@ -113,8 +113,8 @@ plotOverview <- function(ds, markersH, markersV, markerColor, cex, alpha) {
     )
     plotOverviewDimsWithColor(
       cbind(
-        gatherOverviewPlotDim(ds, markersH[i]),
-        gatherOverviewPlotDim(ds, markersV[j])
+        gatherOverviewPlotDim(ds, data, markersH[i]),
+        gatherOverviewPlotDim(ds, data, markersV[j])
       ),
       colc,
       cex=cex,
