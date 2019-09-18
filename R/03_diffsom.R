@@ -231,9 +231,9 @@ diffsomRenderEmbedSOMView <- function(ds) {
   else div(
     tooltip("The expression of the selected marker or data column will be shown in the plot below.",
     selectInput('dsEmbedSOMViewCol', "Column",
-      choices=isolate(ds$colsToUse),
+      choices=ds$colsToUse,
       multiple=F,
-      selected=isolate(ds$colsToUse[1])
+      selected=ds$colsToUse[1]
       )),
     tooltip("Each point represents a trained SOM node (and the corresponding cell cluster around it). Color = expression value of the selected marker. Size of the gray border grows with growing data variance in the cluster.",
     plotOutput("plotDsEmbedSOMView", width=paste0(2*(1+ds$map$xdim),'em'), height=paste0(2*(1+ds$map$ydim),'em')))
