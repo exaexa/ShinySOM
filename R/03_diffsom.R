@@ -483,7 +483,6 @@ serveDiffsom <- function(ws, ds, input, output, session) {
   )
 
   observeEvent(input$dsTransApply, {
-    print("here")
     if(!is.null(input$dsTransConfirm) && input$dsTransConfirm) {
       updateCheckboxInput(session=session, inputId='dsTransConfirm', value=F)
       ds$data <- transformedDsData(ds, input)
