@@ -26,7 +26,10 @@ annotationRender <- function(ds) {
         )
       )
     )
-  res
+  div(
+    res,
+    actionButton('dsClustAnnotationDoSave', "Save annotations")
+  )
 }
 
 annotationGather <- function(ds, input) {
@@ -34,15 +37,14 @@ annotationGather <- function(ds, input) {
   for(l in levels(factor(ds$clust))) {
     res[[l]] <- input[[paste0('dsClustAnnotation_',l)]]
   }
-  unlist(res)
+  res <- unlist(res)
+  if(is.null(res)) character(0) else res
 }
 
 annotationServe <- function(elem, ds, input, output) {
   output[[elem]] <- renderUI(annotationRender(ds))
 
-  observe({
-    tmp <- annotationGather(ds, input)
-    if(!is.null(tmp)) ds$annotation <- tmp
-    if(!is.null(ds$clust) && all(is.na(ds$clust))) ds$annotation <- character(0)
+  observeEvent(input$dsClustAnnotationDoSave, {
+    ds$annotation <- annotationGather(ds, input)
   })
 }
