@@ -499,13 +499,13 @@ serveDiffsom <- function(ws, ds, input, output, session) {
     diffsomRenderEmbedding(ds)
   })
 
-  observeEvent(input$dsEmbedColsToUse, {ds$colsToUse <- input$dsEmbedColsToUse})
-  observeEvent(input$dsEmbedXdim, {ds$xdim <- input$dsEmbedXdim})
-  observeEvent(input$dsEmbedYdim, {ds$ydim <- input$dsEmbedYdim})
-  observeEvent(input$dsEmbedRlen, {ds$rlen <- input$dsEmbedRlen})
-  observeEvent(input$dsEmbedSeed, {ds$seed <- input$dsEmbedSeed})
-
   observeEvent(input$dsEmbedDoSOM, {
+    ds$colsToUse <- input$dsEmbedColsToUse
+    ds$xdim <- input$dsEmbedXdim
+    ds$ydim <- input$dsEmbedYdim
+    ds$rlen <- input$dsEmbedRlen
+    ds$seed <- input$dsEmbedSeed
+
     set.seed(ds$seed)
     showNotification("Computing SOM. This may take a while...")
     ds$map <- EmbedSOM::SOM(
@@ -539,14 +539,14 @@ serveDiffsom <- function(ws, ds, input, output, session) {
       ds$map$mapping[,1])
   })
 
-  observeEvent(input$dsEmbedSmooth, {ds$smooth <- input$dsEmbedSmooth})
-  observeEvent(input$dsEmbedAdjust, {ds$adjust <- input$dsEmbedAdjust})
-  observeEvent(input$dsEmbedK, {ds$k <- input$dsEmbedK})
-  observeEvent(input$dsEmbedCoords, {ds$emcoords <- input$dsEmbedCoords})
-
   observeEvent(input$dsEmbedDoEmbed, {
     if(!is.null(ds$map)) {
       showNotification("Embedding the dataset. This should generally be around 5x faster than SOM.")
+      ds$smooth <- input$dsEmbedSmooth
+      ds$adjust <- input$dsEmbedAdjust
+      ds$k <- input$dsEmbedK
+      ds$emcoords <- input$dsEmbedCoords
+
       ds$e <- EmbedSOM::EmbedSOM(
         data=ds$data[,findColIds(ds$colsToUse, ds$prettyColnames)],
         map=ds$map,
