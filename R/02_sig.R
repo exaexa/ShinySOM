@@ -11,7 +11,7 @@ plotDsASig <- function(control, experiment, files, cellFile, e,
   cl <- factor(cl)
   ncl <- nlevels(cl)
   cl <- as.integer(cl)
-  
+
   conID <- findColIds(control, files)
   expID <- findColIds(experiment, files)
 
@@ -22,7 +22,7 @@ plotDsASig <- function(control, experiment, files, cellFile, e,
   for(i in seq_len(length(expID)))
     probsE[i,] <- pad.zero(tabulate(cl[cellFile==expID[i]]),ncl)/sum(cellFile==expID[i])
 
-  
+
   p_less <- sapply(1:ncl, function(i)
     (1-wilcox.test(
 			probsE[,i],
@@ -51,7 +51,7 @@ plotDsASig <- function(control, experiment, files, cellFile, e,
 	colv[colv<0] <- 0
   acl <- cl[!is.na(cl)]
 	colors <- rgb(colv[acl,1], colv[acl,2], colv[acl,3], colv[acl,4])
-  
+
   par(mar=c(0,0,0,0))
   EmbedSOM::PlotEmbed(e[!is.na(cl),], col=colors, alpha=alpha, cex=cex, plotf=scattermoreplot, frame.plot=F)
 }

@@ -14,7 +14,7 @@ loadFCSTryCompensate <- function(ff, progress) {
     setProgress('Applying stored compensation...', value=progress)
     return(flowCore::compensate(ff, ff@description$SPILL))
   }
-  
+
   if (!is.null(ff@description$`$SPILLOVER`)){
     setProgress('Applying stored compensation...', value=progress)
     if(class(ff@description$`$SPILLOVER`)=="matrix"){
@@ -31,7 +31,7 @@ loadFCSTryCompensate <- function(ff, progress) {
     }
     return(flowCore::compensate(ff, ff@description$SPILL))
   }
-  
+
   ff # didn't find anything
 }
 
@@ -41,7 +41,7 @@ loadFCSAggregate <- function(fileNames, cells) {
 
   ffs <- c()
   files <- c()
-  
+
   #TODO: what about turning off truncate_max_range?
 
     for(i in seq_len(nf)) {
@@ -52,7 +52,7 @@ loadFCSAggregate <- function(fileNames, cells) {
       cs <- sample(nrow(ff), ns)
       flowCore::exprs(ff) <- flowCore::exprs(ff)[cs,]
       files <- c(files, rep(i, ns))
-      
+
       ff <- loadFCSTryCompensate(ff, i)
 
       setProgress('Aggregating...', value=i)

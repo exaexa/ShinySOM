@@ -9,16 +9,16 @@
 # \code{expr}) are expensive.
 debounce <- function(expr, millis, env = parent.frame(), quoted = FALSE,
   domain = getDefaultReactiveDomain()) {
-  
+
   force(millis)
-  
+
   f <- exprToFunction(expr, env, quoted)
   label <- sprintf("debounce(%s)", paste(deparse(body(f)), collapse = "\n"))
 
   v <- reactiveValues(
     trigger = NULL,
     when = NULL # the deadline for the timer to fire; NULL if not scheduled
-  )  
+  )
 
   # Responsible for tracking when f() changes.
   observeEvent(f(), {
@@ -31,7 +31,7 @@ debounce <- function(expr, millis, env = parent.frame(), quoted = FALSE,
   observe({
     if (is.null(v$when))
       return()
-    
+
     now <- Sys.time()
     if (now >= v$when) {
       v$trigger <- runif(1)
@@ -51,17 +51,17 @@ debounce <- function(expr, millis, env = parent.frame(), quoted = FALSE,
 
 #' @examples
 #' library(shiny)
-#' 
+#'
 #' ui <- fluidPage(
 #'   numericInput("val", "Change this rapidly, then pause", 5),
 #'   textOutput("out")
 #' )
-#' 
+#'
 #' server <- function(input, output, session) {
 #'   debounced <- debounce(input$val, 1000)
 #'   output$out <- renderText(
 #'     debounced()
 #'   )
 #' }
-#' 
+#'
 #' shinyApp(ui, server)

@@ -126,7 +126,7 @@ diffsomRenderTransform <- function(ds) {
   trs1 <- unlist(lapply(TRANSFORM_LIST, function(x) x$name))
   trs <- names(trs1)
   names(trs) <- unname(trs1)
-  
+
   div(
     h3("Data transformation editor"),
     fluidRow(
@@ -171,7 +171,7 @@ diffsomRenderTransform <- function(ds) {
 diffsomRenderEmbedding <- function(ds) {
   choices <- ds$prettyColnames
   names(choices) <- choices
-  
+
   #TODO: this deserves an accordion as in here: https://getbootstrap.com/docs/4.0/components/collapse/#accordion-example
 
   fluidRow(
@@ -182,7 +182,7 @@ diffsomRenderEmbedding <- function(ds) {
         choices=choices,
         options=list(
           size=10,
-          `actions-box` = TRUE, 
+          `actions-box` = TRUE,
           `selected-text-format` = 'count > 3'
         ),
         multiple=T,
@@ -474,7 +474,7 @@ serveDiffsom <- function(ws, ds, input, output, session) {
   output$diffsomTransform <- renderUI({
     diffsomRenderTransform(ds)
   })
-  
+
   overviewServe('diffsomTransformOverview', 'Transform', ds, input, output,
     title="Transformed data (preview)", previewTransform=T)
 
@@ -538,7 +538,7 @@ serveDiffsom <- function(ws, ds, input, output, session) {
       ds$data[,findColIds(input$dsEmbedSOMViewCol, ds$prettyColnames)],
       ds$map$mapping[,1])
   })
-  
+
   observeEvent(input$dsEmbedSmooth, {ds$smooth <- input$dsEmbedSmooth})
   observeEvent(input$dsEmbedAdjust, {ds$adjust <- input$dsEmbedAdjust})
   observeEvent(input$dsEmbedK, {ds$k <- input$dsEmbedK})
@@ -572,7 +572,7 @@ serveDiffsom <- function(ws, ds, input, output, session) {
       input$dsEmbedEExprAlpha
     )
   })
-  
+
   #
   # Clustering tab
   #
@@ -596,7 +596,7 @@ serveDiffsom <- function(ws, ds, input, output, session) {
   output$dsClustDendro <- renderShinyDendro({
     if(!is.null(ds$hclust)) {
       colors <- getHeatmapColors(ds, input$dsClusterHeat)
-      shinyDendro('dsClustDendroOutput', 
+      shinyDendro('dsClustDendroOutput',
         ds$hclust$height,
         ds$hclust$merge,
         ds$hclust$order,

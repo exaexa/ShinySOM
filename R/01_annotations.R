@@ -8,7 +8,7 @@ annotationRender <- function(ds) {
   res <- tagAppendChild(res, tags$tr(tags$th("Key", align='center'), tags$th("Population name"), tags$th("Cells", align='right')))
   anns <- isolate(ds$annotation)
   for(l in levels(cl))
-    res <- tagAppendChild(res, 
+    res <- tagAppendChild(res,
       tags$tr(
         tags$td(strong(l), align='center'),
         tags$td(

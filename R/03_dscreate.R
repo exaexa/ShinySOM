@@ -52,7 +52,7 @@ renderDsCreateNormalize <- function(fs) {
       tooltip("You may choose data columns that are to be imported to the dataset. This is useful for dumping irrelevant information (e.g. redundant scatter information from multiple lasers, Time, and remains from barcoding).",
       uiOutput('dsCreateLoadColsUi')),
       tooltip("Subsampling the cells makes the dataset smaller and all computations (and plotting) faster.",
-      checkboxInput('dsCreateParams', 'reduce the dataset by subsampling', value=T)), 
+      checkboxInput('dsCreateParams', 'reduce the dataset by subsampling', value=T)),
       tooltip("You may want to downsample the dataset to under 1 million cells, in order to improve the interface responsiveness and reduce memory usage. This causes only negligible impact on analysis results, and the same analysis can later be applied to full datasets using batch processing.",
       numericInput('dsCreateSubsample', 'Number of cells to sample', min=1, step=1, value=250000))
     )
@@ -160,7 +160,7 @@ dsCreateDoLoad <- function(name, fs, params, subsample, colsToLoad, prettyCols, 
     }
 
     colnames(ds$data) <- ds$prettyColnames
-    
+
     setProgress('Creating dataset', value=length(fns)+1)
     saveDataset(workspace, name, ds)
   })
@@ -180,7 +180,7 @@ dsCreateDoClone <- function(ws, orig, name) {
     showNotification(type='error', "Dataset already exists")
     return()
   }
-  
+
   if(!datasetExists(ws, orig)) {
     showNotification(type='error', "Original dataset does not exist.")
     return()
@@ -213,7 +213,7 @@ dsCreateDoDelete <- function(ws, name, confirm) {
     showNotification(type='error', "Confirmation required!")
     return()
   }
-    
+
   tryCatch({
       removeDataset(ws, name)
       showNotification(type='message', "Dataset removed.")
@@ -273,14 +273,14 @@ serveDsCreate <- function(workspace, input, output, session) {
     choices=as.list(ch)
     names(choices)<-ch
     pickerInput(
-      inputId = 'dsCreateLoadCols', 
-      label = 'Columns to load', 
+      inputId = 'dsCreateLoadCols',
+      label = 'Columns to load',
       choices = choices,
       options = list(
-        `actions-box` = TRUE, 
+        `actions-box` = TRUE,
         size = 10,
         `selected-text-format` = 'count > 2'
-      ), 
+      ),
       multiple = TRUE
     )
   })

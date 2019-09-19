@@ -71,7 +71,7 @@ plotOverviewHist <- function(d, vertical) {
     polygon(
       if(vertical) py else px,
       if(vertical) px else py,
-      col=rgb(.8,.8,.8), border='black') 
+      col=rgb(.8,.8,.8), border='black')
 }
 
 plotOverview <- function(ds, data, markersH, markersV, markerColor, cex, alpha) {
