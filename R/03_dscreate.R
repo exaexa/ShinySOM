@@ -31,7 +31,8 @@ renderDsCreate <- function(dsCreate) {
       tooltip("Cloning a dataset creates a complete copy of the original data, which may serve as a backup, or for trying different analysis approaches without losing the original data.",
       h3("Clone a dataset")),
       uiOutput('dsCreateClone'),
-      h3("Delete a dataset"),
+      tooltip("Deleting a dataset erases all its data, but not the original FCS files nor the exported results.",
+      h3("Delete a dataset")),
       uiOutput('dsCreateDelete')
     )
   )
@@ -74,24 +75,22 @@ renderDsCreateFinalize <- function(fs, cols, dsCreate) {
 }
 
 renderDsCreateClone <- function(ws) {
-  choices <- names(ws$datasets)
   div(
     pickerInput('dsCreateCloneOrig', "Original dataset",
-      choices=choices,
+      choices=ws$datasets,
       multiple=F,
-      selected=choices[1]),
+      selected=ws$datasets[1]),
     textInput('dsCreateCloneName', 'Clone name', value=''),
     actionButton('dsCreateDoClone', 'Clone the dataset')
   )
 }
 
 renderDsCreateDelete <- function(ws) {
-  choices <- names(ws$datasets)
   div(
     pickerInput('dsCreateDeleteOrig', "Original dataset",
-      choices=choices,
+      choices=ws$datasets,
       multiple=F,
-      selected=choices[1]),
+      selected=ws$datasets[1]),
     checkboxInput('dsCreateDeleteConfirm', 'Confirm deleting the dataset', value=F),
     actionButton('dsCreateDoDelete', 'Delete the dataset')
   )
@@ -174,24 +173,27 @@ dsCreateDoLoad <- function(name, fs, params, subsample, colsToLoad, prettyCols, 
 dsCreateDoClone <- function(ws, orig, name) {
   if(!datasetNameValid(name)) {
     showNotification(type='error', "Invalid dataset name")
-    return
+    return()
   }
 
   if(datasetExists(ws, name)) {
     showNotification(type='error', "Dataset already exists")
-    return
+    return()
   }
-
+  
   if(!datasetExists(ws, orig)) {
     showNotification(type='error', "Original dataset does not exist.")
-    return
+    return()
   }
 
-  showNotification("Cloning the dataset...")
   tryCatch( {
-      ds <- loadDataset(orig)
-      saveDataset(workspace, name, ds)
-      showNotification(type='message', "Cloning done")
+      withProgress(message="Cloning the dataset...", value=1, min=1, max=3, {
+        ds <- loadDataset(orig)
+        setProgress(value=2)
+        saveDataset(ws, name, ds)
+        setProgress(value=3)
+      })
+      showNotification(type='message', "Dataset cloned.")
     },
     error=function(e) {
       showNotification(type='error',
@@ -204,14 +206,14 @@ dsCreateDoClone <- function(ws, orig, name) {
 dsCreateDoDelete <- function(ws, name, confirm) {
   if(!datasetExists(ws, name)) {
     showNotification(type='warning', "The dataset does not exist already.")
-    return
+    return()
   }
 
   if(!confirm) {
     showNotification(type='error', "Confirmation required!")
-    return
+    return()
   }
-
+    
   tryCatch({
       removeDataset(ws, name)
       showNotification(type='message', "Dataset removed.")
@@ -331,14 +333,14 @@ serveDsCreate <- function(workspace, input, output, session) {
   )
 
   observeEvent(input$dsCreateDoClone,
-    dsCreateDoClone(ws,
+    dsCreateDoClone(workspace,
       input$dsCreateCloneOrig,
       input$dsCreateCloneName
     )
   )
 
   observeEvent(input$dsCreateDoDelete, {
-    dsCreateDoDelete(ws,
+    dsCreateDoDelete(workspace,
       input$dsCreateDeleteOrig,
       input$dsCreateDeleteConfirm
     )

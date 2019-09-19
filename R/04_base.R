@@ -3,7 +3,6 @@ ui <- fluidPage(
   fluidRow(
     column(3, div(
       img(src=paste0('data:image/png;base64,', logoImgSrc),
-        width="256", height="256",
         style="width:3em; height:3em; vertical-align:baseline;"),
       h1("ShinySOM", style="display: inline-block;")
     )),

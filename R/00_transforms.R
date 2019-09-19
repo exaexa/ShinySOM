@@ -37,11 +37,11 @@ TRANSFORM_LIST <- list(
     name="Hyperbolic arcSin",
     renderParams=function()
       div(
-        numericInput('dsTransPAsinhC', "Center", value=0, step=0.1),
+        numericInput('dsTransPAsinhCq', "Center (quantile)", value=0.05, step=0.01, min=0, max=1),
         numericInput('dsTransPAsinhS', "Scale", value=15, step=0.1, min=0.001)
       ),
     check=function(d, input) TRUE,
-    trans=function(d, input) asinh((d-input$dsTransPAsinhC)*input$dsTransPAsinhS)
+    trans=function(d, input) asinh((d-quantile(d, input$dsTransPAsinhCq))*input$dsTransPAsinhS)
   ),
   #TODO:
   #biexp=list(
@@ -55,14 +55,16 @@ TRANSFORM_LIST <- list(
     name="2-sided logarithm",
     renderParams=function()
       div(
-        numericInput('dsTransP2LogC', "Center", value=0, step=0.1),
+        numericInput('dsTransP2LogCq', "Center (quantile)", value=0.05, step=0.01, min=0, max=1),
         numericInput('dsTransP2LogS', "Scale", value=15, step=0.1, min=0.001)
       ),
     check=function(d, input) TRUE,
-    trans=function(d, input)
+    trans=function(d, input) {
+      center <- quantile(d, input$dsTransP2LogCq)
       log(1+
-        abs(d-input$dsTransP2LogC)*input$dsTransP2LogS
-      )*sign(d-input$dsTransP2LogC)
+        abs(d-center)*input$dsTransP2LogS
+      )*sign(d-center)
+    }
   ),
   quantile=list(
     name="Quantile",
