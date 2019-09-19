@@ -486,7 +486,7 @@ serveDiffsom <- function(ws, ds, input, output, session) {
     if(!is.null(input$dsTransConfirm) && input$dsTransConfirm) {
       updateCheckboxInput(session=session, inputId='dsTransConfirm', value=F)
       ds$data <- transformedDsData(ds, input)
-      updatePickerInput(session=session, inputId='dsTransCols', selected=NULL)
+      updatePickerInput(session=session, inputId='dsTransCols', selected=character(0))
       showNotification(type='message', "Transformation applied.")
     } else showNotification(type='warning', "Confirmation required!")
   })

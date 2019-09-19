@@ -4,26 +4,36 @@
 #
 
 renderDsCreate <- function(dsCreate) {
-  div(
-    tooltip("A ShinySOM dataset is similar to FlowSOM `fsom` data object: it contains the data, and some analysis-related information (e.g. the SOM and clustering data)",
-    h1('Create datasets')),
+  fluidRow(
+    column(6,
+      tooltip("A ShinySOM dataset is similar to FlowSOM `fsom` data object: it contains the data, and some analysis-related information (e.g. the SOM and clustering data)",
+      h1('Create datasets')),
 
-    h3('1. Select files'),
+      h3('1. Select files'),
 
-    tooltip("The selected FCS files will be aggregated and used for the analysis",
-    p(
-      shinyFilesButton('dsCreateFiles',
-      'Select dataset files',
-      'Choose FCS files',
-      multiple=T),
-      uiOutput('dsCreateFileNumber')
-    )),
+      tooltip("The selected FCS files will be aggregated and used for the analysis",
+      p(
+        shinyFilesButton('dsCreateFiles',
+        'Select dataset files',
+        'Choose FCS files',
+        multiple=T),
+        uiOutput('dsCreateFileNumber')
+      )),
 
-    h3('2. Select data and sample cells'),
-    uiOutput('dsCreateNormalize'),
+      h3('2. Select data and sample cells'),
+      uiOutput('dsCreateNormalize'),
 
-    h3('3. Create dataset'),
-    uiOutput('dsCreateFinalize')
+      h3('3. Create dataset'),
+      uiOutput('dsCreateFinalize')
+    ),
+    column(6,
+      h1("Manage datasets"),
+      tooltip("Cloning a dataset creates a complete copy of the original data, which may serve as a backup, or for trying different analysis approaches without losing the original data.",
+      h3("Clone a dataset")),
+      uiOutput('dsCreateClone'),
+      h3("Delete a dataset"),
+      uiOutput('dsCreateDelete')
+    )
   )
 }
 
@@ -36,28 +46,15 @@ renderDsCreateFileNum <- function(fs) {
 }
 
 renderDsCreateNormalize <- function(fs) {
-  if(is.list(fs)) {
-    res <- tagList()
-
-    res <- tagAppendChild(res,
-      fluidRow(column(4,
-          tooltip("You may choose data columns that are to be imported to the dataset. This is useful for dumping irrelevant information (e.g. redundant scatter information from multiple lasers, Time, and remains from barcoding).",
-          uiOutput('dsCreateLoadColsUi'))
-        ),
-        column(4,
-          tooltip("Normalizing the columns fixes all markers to have the same variance, and therefore similar impact on automated clustering. Subsampling the cells makes the dataset smaller and all computations (and plotting) faster.",
-          checkboxGroupInput('dsCreateParams', 'Loading parameters', 
-            c(
-              'Reduce the dataset by subsampling'='subsample'
-            )
-          )),
-          tooltip("You may want to downsample the dataset to under 1 million cells, in order to improve the interface responsiveness and reduce memory usage. The conducted analysis can later be applied to full datasets.",
-          numericInput('dsCreateSubsample', 'Number of cells to sample', min=1, step=1, value=200000))
-        )
-      )
+  if(is.list(fs))
+    div(
+      tooltip("You may choose data columns that are to be imported to the dataset. This is useful for dumping irrelevant information (e.g. redundant scatter information from multiple lasers, Time, and remains from barcoding).",
+      uiOutput('dsCreateLoadColsUi')),
+      tooltip("Subsampling the cells makes the dataset smaller and all computations (and plotting) faster.",
+      checkboxInput('dsCreateParams', 'reduce the dataset by subsampling', value=T)), 
+      tooltip("You may want to downsample the dataset to under 1 million cells, in order to improve the interface responsiveness and reduce memory usage. This causes only negligible impact on analysis results, and the same analysis can later be applied to full datasets using batch processing.",
+      numericInput('dsCreateSubsample', 'Number of cells to sample', min=1, step=1, value=250000))
     )
-    res
-  }
   else 'No files selected.'
 }
 
@@ -73,6 +70,30 @@ renderDsCreateFinalize <- function(fs, cols, dsCreate) {
     textInput('dsCreateName', 'Dataset name', value=file1)),
     tooltip("Loading and aggregating the data may take several tens of seconds, depending on the dataset size.",
     actionButton('dsCreateDoIt', 'Create dataset'))
+  )
+}
+
+renderDsCreateClone <- function(ws) {
+  choices <- names(ws$datasets)
+  div(
+    pickerInput('dsCreateCloneOrig', "Original dataset",
+      choices=choices,
+      multiple=F,
+      selected=choices[1]),
+    textInput('dsCreateCloneName', 'Clone name', value=''),
+    actionButton('dsCreateDoClone', 'Clone the dataset')
+  )
+}
+
+renderDsCreateDelete <- function(ws) {
+  choices <- names(ws$datasets)
+  div(
+    pickerInput('dsCreateDeleteOrig', "Original dataset",
+      choices=choices,
+      multiple=F,
+      selected=choices[1]),
+    checkboxInput('dsCreateDeleteConfirm', 'Confirm deleting the dataset', value=F),
+    actionButton('dsCreateDoDelete', 'Delete the dataset')
   )
 }
 
@@ -112,7 +133,6 @@ dsCreateDoLoad <- function(name, fs, params, subsample, colsToLoad, prettyCols, 
 
   fns <- dsCreateFiles(fs)
 
-
   withProgress(message='Aggregating FCS files', value=1, min=1, max=length(fns)+1, {
     data <- loadFCSAggregate(fns,
       if('subsample' %in% params) subsample else NULL)
@@ -148,6 +168,63 @@ dsCreateDoLoad <- function(name, fs, params, subsample, colsToLoad, prettyCols, 
 }
 
 #
+# Clone&Delete handlers
+#
+
+dsCreateDoClone <- function(ws, orig, name) {
+  if(!datasetNameValid(name)) {
+    showNotification(type='error', "Invalid dataset name")
+    return
+  }
+
+  if(datasetExists(ws, name)) {
+    showNotification(type='error', "Dataset already exists")
+    return
+  }
+
+  if(!datasetExists(ws, orig)) {
+    showNotification(type='error', "Original dataset does not exist.")
+    return
+  }
+
+  showNotification("Cloning the dataset...")
+  tryCatch( {
+      ds <- loadDataset(orig)
+      saveDataset(workspace, name, ds)
+      showNotification(type='message', "Cloning done")
+    },
+    error=function(e) {
+      showNotification(type='error',
+        paste('Dataset cloning failed:', e)
+      )
+    }
+  )
+}
+
+dsCreateDoDelete <- function(ws, name, confirm) {
+  if(!datasetExists(ws, name)) {
+    showNotification(type='warning', "The dataset does not exist already.")
+    return
+  }
+
+  if(!confirm) {
+    showNotification(type='error', "Confirmation required!")
+    return
+  }
+
+  tryCatch({
+      removeDataset(ws, name)
+      showNotification(type='message', "Dataset removed.")
+    },
+    error=function(e) {
+      showNotification(type='error',
+        paste('Dataset cloning failed:', e)
+      )
+    }
+  )
+}
+
+#
 # Read column names for overview
 #
 
@@ -162,7 +239,7 @@ dsCreateLoadPrettyCols <- function(fs) {
 # Serving function
 #
 
-serveDsCreate <- function(workspace, input, output) {
+serveDsCreate <- function(workspace, input, output, session) {
 
   # Processing flag
   dsCreate <- reactiveValues(
@@ -239,5 +316,33 @@ serveDsCreate <- function(workspace, input, output) {
       )
       dsCreate$processing <- F
     }
+  })
+
+  #
+  # Clone/Delete
+  #
+
+  output$dsCreateClone <- renderUI(
+    renderDsCreateClone(workspace)
+  )
+
+  output$dsCreateDelete <- renderUI(
+    renderDsCreateDelete(workspace)
+  )
+
+  observeEvent(input$dsCreateDoClone,
+    dsCreateDoClone(ws,
+      input$dsCreateCloneOrig,
+      input$dsCreateCloneName
+    )
+  )
+
+  observeEvent(input$dsCreateDoDelete, {
+    dsCreateDoDelete(ws,
+      input$dsCreateDeleteOrig,
+      input$dsCreateDeleteConfirm
+    )
+
+    updateCheckboxInput(session, 'dsCreateDeleteConfirm', value=FALSE)
   })
 }

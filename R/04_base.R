@@ -1,11 +1,12 @@
 
-library(shiny)
-library(shinyFiles)
-library(shinyWidgets)
-
 ui <- fluidPage(
   fluidRow(
-    column(3, h1("ShinySOM")),
+    column(3, div(
+      img(src=paste0('data:image/png;base64,', logoImgSrc),
+        width="256", height="256",
+        style="width:3em; height:3em; vertical-align:baseline;"),
+      h1("ShinySOM", style="display: inline-block;")
+    )),
     column(9, uiOutput("selectPage"))
   ),
   uiOutput("mainPage")
@@ -37,6 +38,11 @@ loadDataset <- function(name) {
   readRDS(paste0(getDatasetPath(),'/',name,'.shinysom'))
 }
 
+removeDataset <- function(workspace, name) {
+  unlink(paste0(getDatasetPath(),'/',name,'.shinysom'))
+  workspace$datasets <- workspace$datasets[workspace$datasets != name]
+}
+
 server <- function(input, output, session) {
   workspace <- reactiveValues(datasets=listDatasets(), page='__foreign__')
 
@@ -60,7 +66,7 @@ server <- function(input, output, session) {
 
   serveMenu(workspace, diffsom, input, output)
   serveForeign(foreign, input, output)
-  serveDsCreate(workspace, input, output)
+  serveDsCreate(workspace, input, output, session)
   serveDiffsom(workspace, diffsom, input, output, session)
 }
 
