@@ -40,7 +40,7 @@ loadFCSTryCompensate <- function(ff, progress, fn) {
         } else {
           colnames(ff@description$SPILL)[i] <- ff@parameters$name[cnn]
         }
-      } else
+      }
     }
     if(!is.null(to_remove)) #OMG R, dude, come on, there can't be special cases for everything!
       ff@description$SPILL <- ff@description$SPILL [to_remove, to_remove]
