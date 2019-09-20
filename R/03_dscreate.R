@@ -52,9 +52,11 @@ renderDsCreateNormalize <- function(fs) {
       tooltip("You may choose data columns that are to be imported to the dataset. This is useful for dumping irrelevant information (e.g. redundant scatter information from multiple lasers, Time, and remains from barcoding).",
       uiOutput('dsCreateLoadColsUi')),
       tooltip("Subsampling the cells makes the dataset smaller and all computations (and plotting) faster.",
-      checkboxInput('dsCreateParams', 'reduce the dataset by subsampling', value=T)),
+      checkboxInput('dsCreateParSubsample', 'Reduce the dataset by subsampling', value=T)),
       tooltip("You may want to downsample the dataset to under 1 million cells, in order to improve the interface responsiveness and reduce memory usage. This causes only negligible impact on analysis results, and the same analysis can later be applied to full datasets using batch processing.",
-      numericInput('dsCreateSubsample', 'Number of cells to sample', min=1, step=1, value=250000))
+      numericInput('dsCreateSubsample', 'Number of cells to sample', min=1, step=1, value=250000)),
+      tooltip("This may help with loading files that contain broken compensation matrices.",
+      checkboxInput('dsCreateParNoComp', 'Skip applying the stored compensation matrix', value=F))
     )
   else 'No files selected.'
 }
@@ -126,16 +128,14 @@ dsCreatePrettyColnames <- function(loaded) {
 # Actual loading function that reads the files and puts the dataset into the workspace
 #
 
-dsCreateDoLoad <- function(name, fs, params, subsample, colsToLoad, prettyCols, workspace) {
+dsCreateDoLoad <- function(name, fs, subsample, noComp, nCells, colsToLoad, prettyCols, workspace) {
   if(!datasetNameValid(name)) stop('Invalid dataset name')
   if(datasetExists(workspace, name)) stop('Dataset of same name already exists')
 
   fns <- dsCreateFiles(fs)
 
   withProgress(message='Aggregating FCS files', value=1, min=1, max=length(fns)+1, {
-    data <- loadFCSAggregate(fns,
-      if('subsample' %in% params) subsample else NULL)
-
+    data <- loadFCSAggregate(fns, if(subsample)nCells else NULL, noComp)
 
     ds <- list()
 
@@ -151,13 +151,6 @@ dsCreateDoLoad <- function(name, fs, params, subsample, colsToLoad, prettyCols, 
     setProgress('Cleaning...', value=length(fns)+1)
     ds$data[is.nan(ds$data)] <- NA
     ds$data <- ds$data[apply(!is.na(ds$data), 1, all),]
-
-    if('scale' %in% params) {
-      setProgress('Scaling...', value=length(fns)+1)
-      sds <- apply(ds$data,2,sd)
-      sds[sds==0]<-1 #avoid ugly NaNs from constant columns
-      ds$data <- scale(ds$data, scale=sds)
-    }
 
     colnames(ds$data) <- ds$prettyColnames
 
@@ -301,7 +294,8 @@ serveDsCreate <- function(workspace, input, output, session) {
           dsCreateDoLoad(
             input$dsCreateName,
             input$dsCreateFiles,
-            input$dsCreateParams,
+            input$dsCreateParSubsample,
+            input$dsCreateParNoComp,
             input$dsCreateSubsample,
             input$dsCreateLoadCols,
             prettyCols(),

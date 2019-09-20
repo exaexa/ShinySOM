@@ -1,5 +1,4 @@
 
-#TODO: plot population annotations as well
 plotDsASig <- function(control, experiment, files, cellFile, e,
   gran, mapping, clust, annotation,
   pow, cex, alpha)
@@ -54,4 +53,5 @@ plotDsASig <- function(control, experiment, files, cellFile, e,
 
   par(mar=c(0,0,0,0))
   EmbedSOM::PlotEmbed(e[!is.na(cl),], col=colors, alpha=alpha, cex=cex, plotf=scattermoreplot, frame.plot=F)
+  plotClusterTextAnnotation(e[!is.na(cl),], cl[!is.na(cl)], annotation)
 }

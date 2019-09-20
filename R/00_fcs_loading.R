@@ -7,7 +7,7 @@ loadFCSColnames <- function(file) {
   )
 }
 
-loadFCSTryCompensate <- function(ff, progress) {
+loadFCSTryCompensate <- function(ff, progress, fn) {
   # FlowSOM-like finding of any possible compensation matrix
   # (base code originated in FlowSOM, (C) 2015-2019 Sofie Van Gassen et al.)
   if(!is.null(ff@description$SPILL)){
@@ -29,13 +29,34 @@ loadFCSTryCompensate <- function(ff, progress) {
       colnames(spillover) <- spilloverStr[2:(n+1)]
       ff@description$SPILL <- spillover
     }
-    return(flowCore::compensate(ff, ff@description$SPILL))
+    to_remove <- c()
+    for(i in seq_len(dim(ff@description$SPILL)[2])) {
+      cn <- colnames(ff@description$SPILL)[i]
+      if(!cn %in% ff@parameters$name) {
+        #ok the column is missing, at least try whether the label is numeric and we can assign it to something
+        cnn <- as.numeric(cn)
+        if(is.na(cnn) || cnn > length(ff@parameters$name)) {
+          to_remove <- c(to_remove, -i)
+        } else {
+          colnames(ff@description$SPILL)[i] <- ff@parameters$name[cnn]
+        }
+      } else
+    }
+    if(!is.null(to_remove)) #OMG R, dude, come on, there can't be special cases for everything!
+      ff@description$SPILL <- ff@description$SPILL [to_remove, to_remove]
+
+    tryCatch(
+      return(flowCore::compensate(ff, ff@description$SPILL)),
+    error=function(e){
+      showNotification(type='warning', paste("Compensation on file", fn, "failed:",e))
+      return(ff)
+    })
   }
 
   ff # didn't find anything
 }
 
-loadFCSAggregate <- function(fileNames, cells) {
+loadFCSAggregate <- function(fileNames, cells, noComp) {
   nf <- length(fileNames)
   cf <- ceiling(cells/nf)
 
@@ -53,7 +74,8 @@ loadFCSAggregate <- function(fileNames, cells) {
       flowCore::exprs(ff) <- flowCore::exprs(ff)[cs,]
       files <- c(files, rep(i, ns))
 
-      ff <- loadFCSTryCompensate(ff, i)
+      if(!noComp)
+        ff <- loadFCSTryCompensate(ff, i, fileNames[i])
 
       setProgress('Aggregating...', value=i)
       if(is.null(ffs))

@@ -19,8 +19,8 @@ TRANSFORM_LIST <- list(
     name="Simplified logicle",
     renderParams=function() div(
         numericInput('dsTransPLogicleQR', "qR (linearization quantile)", value=.05, step=0.01, min=0, max=1),
-        numericInput('dsTransPLogicleN', "Linear root", value=2, step=0.1, min=0.1, max=10),
-        numericInput('dsTransPLogicleP', "Logarithm scale", value=.05, step=0.01, min=0, max=1)
+        numericInput('dsTransPLogicleN', "Linear root", value=2, step=0.1, min=0.1, max=30),
+        numericInput('dsTransPLogicleP', "Logarithm scale (inverse)", value=15, step=0.1, min=0.001)
     ),
     check=function(d, input) TRUE,
     trans=function(d, input) {
@@ -29,7 +29,7 @@ TRANSFORM_LIST <- list(
       pw <- 1/input$dsTransPLogicleN
       pp <- input$dsTransPLogicleP
       d[d<0] <- (1-((1-d[d<0])^pw))/pw
-      d[d>0] <- log(1+d[d>0]*pp)/pp
+      d[d>0] <- log(1+d[d>0]/pp)*pp
       d
     }
   ),
@@ -38,10 +38,10 @@ TRANSFORM_LIST <- list(
     renderParams=function()
       div(
         numericInput('dsTransPAsinhCq', "Center (quantile)", value=0.05, step=0.01, min=0, max=1),
-        numericInput('dsTransPAsinhS', "Scale", value=15, step=0.1, min=0.001)
+        numericInput('dsTransPAsinhS', "Scale (inverse)", value=15, step=0.1, min=0.001)
       ),
     check=function(d, input) TRUE,
-    trans=function(d, input) asinh((d-quantile(d, input$dsTransPAsinhCq))*input$dsTransPAsinhS)
+    trans=function(d, input) asinh((d-quantile(d, input$dsTransPAsinhCq))/input$dsTransPAsinhS)
   ),
   #TODO:
   #biexp=list(
@@ -56,7 +56,7 @@ TRANSFORM_LIST <- list(
     renderParams=function()
       div(
         numericInput('dsTransP2LogCq', "Center (quantile)", value=0.05, step=0.01, min=0, max=1),
-        numericInput('dsTransP2LogS', "Scale", value=15, step=0.1, min=0.001)
+        numericInput('dsTransP2LogS', "Scale (inverse)", value=15, step=0.1, min=0.001)
       ),
     check=function(d, input) TRUE,
     trans=function(d, input) {
@@ -70,7 +70,7 @@ TRANSFORM_LIST <- list(
     name="Quantile",
     renderParams=function()
       radioButtons('dsTransPQuT', "Output distriution",
-        choices=list(`Uniform`='unif', `Normal`='norm', `Exponential`='exp'),
+        choices=list(`Uniform`='unif', `Normal`='norm', `Exponential`='exp', `Logit`='logit'),
         selected='unif'
       ),
     check=function(d, input) TRUE,
@@ -81,6 +81,8 @@ TRANSFORM_LIST <- list(
         r <- qnorm(r)
       else if(input$dsTransPQuT=='exp')
         r <- qexp(r)
+      else if(input$dsTransPQuT=='logit')
+        r <- -log(1/r - 1)
       r
     }
   )
