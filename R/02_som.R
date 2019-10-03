@@ -7,22 +7,17 @@ plotSOMOverview <- function(xdim, ydim, codevals, datavals, mapping) {
   m <- max(stroke)
   if(m<=0) m <- 1
   stroke <- 0.2+5*stroke/max(stroke)
+  size <- sqrt(tabulate(mapping))
+  size <- 2*size/max(size)
+  points <- expand.grid(1:xdim, 1:ydim)
 
-  ggplot2::ggplot(
-    data.frame(
-      expand.grid(x=1:xdim,y=1:ydim),
-      stroke=stroke,
-      size=sqrt(tabulate(mapping)),
-      color=codevals)) +
-  ggplot2::geom_point(
-    ggplot2::aes(
-      fill=color,
-      x=x, y=y,
-      size=size,
-      stroke=stroke),
-    shape=21,
-    color='gray') +
-  ggplot2::scale_size_continuous(guide=F) +
-  ggplot2::scale_fill_gradientn(colors=EmbedSOM::ExpressionPalette(32), guide=F) +
-  cowplot::theme_cowplot()
+  par(mar=c(0,0,0,0))
+  plot(points[,1], points[,2],
+    col=rgb(.75,.75,.75),
+    pch=19,
+    cex=size+stroke, xaxt='n', yaxt='n', frame.plot=F)
+  points(points[,1], points[,2],
+    col=EmbedSOM::ExpressionPalette(32)[1+31*EmbedSOM::NormalizeColor(codevals)],
+    pch=19,
+    cex=size)
 }
