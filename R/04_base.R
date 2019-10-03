@@ -75,6 +75,8 @@ ShinySOM <- function(
     dataset.dir='datasets',
     roots=c(`Session storage`='data'),
     ...) {
+  if(!dir.exists(dataset.dir)) stop("Dataset directory does not exist!")
+  if(!all(dir.exists(roots))) stop("Some of the storage root directories do not exist!")
   options(ShinySOM.Datasets=paste0(dataset.dir, '/'))
   options(ShinySOM.foreignRoots=roots)
   options(shiny.maxRequestSize=100*2^20)

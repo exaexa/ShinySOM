@@ -1,12 +1,13 @@
 # ShinySOM
 
-FlowSOM-based workflow&tools packaged in a Shiny application.
+FlowSOM-style workflow&tools packaged in a Shiny application.
 
 ## Installation
 
-ShinySOM requires quite a bit of supporting packages, some of which are not yet on CRAN. First, you need FlowSOM and the related packages; these can be installed from Bioconductor (see https://www.bioconductor.org/packages/release/bioc/html/FlowSOM.html). After installing FlowSOM, you may get the rest of dependencies and ShinySOM via `git`, using `devtools`:
+ShinySOM requires quite a bit of supporting packages, many of which are not yet on CRAN. First, you need `flowCore` and the related packages; these can be installed from Bioconductor (see https://www.bioconductor.org/packages/release/bioc/html/flowCore.html). After installing flowCore, you may get the rest of dependencies and ShinySOM via `git`, using `devtools`:
 
 ```r
+devtools::install_github('tsieger/mhca')
 devtools::install_github('exaexa/EmbedSOM')
 devtools::install_github('exaexa/scattermore')
 devtools::install_github('exaexa/shinyDendro')
