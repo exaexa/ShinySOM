@@ -34,11 +34,8 @@ getHeatmapColors <- function(ds, colors) {
   if(length(ids)==0) return(NULL)
 
   pal <- EmbedSOM::ExpressionPalette(100)
-  d <- apply(ds$map$codes[,ids,drop=F], 2, function(col) {
-    rng <- max(col)-min(col)
-    if(rng==0) rng <- 1
-    pal[1+as.integer(99*(col-min(col))/rng)]
-  })
+  d <- apply(ds$map$codes[,ids,drop=F], 2,
+    function(col) pal[1+as.integer(99*EmbedSOM::NormalizeColor(col))])
   colnames(d) <- ds$colsToUse[ids]
   d
 }

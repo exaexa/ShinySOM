@@ -282,9 +282,7 @@ diffsomRenderClustering <- function(ds) {
     column(4,
       tooltip("This is a rough preview of how the cell classification looks in the embedding. Use the overview scatterplots below to obtain more precise views.",
       h4("Clusters overview")),
-      uiOutput("uiDsClusterEmbedding"),
-      sliderPointSize('dsClustEmbedCex'),
-      sliderAlpha('dsClustEmbedAlpha')
+      uiOutput("uiDsClusterEmbedding")
     )
   ),
   uiOutput('diffsomClustOverview')
@@ -294,10 +292,12 @@ diffsomRenderClustering <- function(ds) {
 diffsomRenderClusterHeat <- function(ds) {
   if(is.null(ds$hclust)) div()
   else tooltip("Choose markers/data columns that will appear in the dendrogram. The view helps with precisely classifying the related cell populations.",
-    selectInput("dsClusterHeat", "Heatmap columns",
-    choices=unname(ds$colsToUse),
-    multiple=T,
-    selected=c()))
+    pickerInput("dsClusterHeat",
+      "Heatmap columns",
+      choices=unname(ds$colsToUse),
+      multiple=T,
+      selected=c()
+    ))
 }
 
 diffsomRenderClusterEmbedding <- function(ds) {
@@ -305,8 +305,17 @@ diffsomRenderClusterEmbedding <- function(ds) {
     p("Compute the embedding first")
   else if(is.null(ds$clust))
     p("Create the clustering first")
-  else plotOutput('plotDsClustEmbed',
-    width='40em', height='40em')
+  else div(
+    plotOutput('plotDsClustEmbed',
+      width='40em', height='40em'),
+    selectInput('dsClustEmbedColor',
+      'Choose a marker',
+      choices=c('(cluster)', unname(ds$prettyColnames)),
+      multiple=F,
+      selected='(cluster)'),
+    sliderPointSize('dsClustEmbedCex'),
+    sliderAlpha('dsClustEmbedAlpha')
+  )
 }
 
 #
@@ -618,6 +627,9 @@ serveDiffsom <- function(ws, ds, input, output, session) {
       ds$e,
       ds$clust[ds$map$mapping[,1]],
       ds$annotation,
+      ds$data,
+      ds$prettyColnames,
+      input$dsClustEmbedColor,
       input$dsClustEmbedCex,
       input$dsClustEmbedAlpha)
   })
