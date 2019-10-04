@@ -290,14 +290,13 @@ diffsomRenderClustering <- function(ds) {
 }
 
 diffsomRenderClusterHeat <- function(ds) {
-  if(is.null(ds$hclust)) div()
-  else tooltip("Choose markers/data columns that will appear in the dendrogram. The view helps with precisely classifying the related cell populations.",
-    pickerInput("dsClusterHeat",
-      "Heatmap columns",
-      choices=unname(ds$colsToUse),
-      multiple=T,
-      selected=c()
-    ))
+  tooltip("Choose markers/data columns that will appear in the dendrogram. The view helps with precisely classifying the related cell populations.",
+  pickerInput("dsClusterHeat",
+    "Heatmap columns",
+    choices=unname(ds$colsToUse),
+    multiple=T,
+    selected=c()
+  ))
 }
 
 diffsomRenderClusterEmbedding <- function(ds) {
@@ -309,13 +308,20 @@ diffsomRenderClusterEmbedding <- function(ds) {
     plotOutput('plotDsClustEmbed',
       width='40em', height='40em',
       brush=brushOpts(id='dsBrushClustEmbed')),
-    selectInput('dsClustEmbedColor',
-      'Choose a marker',
-      choices=c('(cluster)', unname(ds$prettyColnames)),
-      multiple=F,
-      selected='(cluster)'),
-    sliderPointSize('dsClustEmbedCex'),
-    sliderAlpha('dsClustEmbedAlpha')
+    fluidRow(
+      column(6,
+        selectInput('dsClustEmbedColor',
+            'Plot coloring',
+            choices=c('(cluster)', unname(ds$prettyColnames)),
+            multiple=F,
+            selected='(cluster)'),
+        uiOutput("uiDsClustReorder")
+      ),
+      column(6,
+        sliderPointSize('dsClustEmbedCex'),
+        sliderAlpha('dsClustEmbedAlpha')
+      )
+    )
   )
 }
 
@@ -644,6 +650,25 @@ serveDiffsom <- function(ws, ds, input, output, session) {
       input$dsClustEmbedColor,
       input$dsClustEmbedCex,
       input$dsClustEmbedAlpha)
+  })
+
+  output$uiDsClustReorder <- renderUI( {
+    if(input$dsClustEmbedColor %in% ds$colsToUse)
+      actionButton('dsClustDoReorder', "Reorder dendrogram")
+    else
+      span()
+  })
+
+  observeEvent(input$dsClustDoReorder, {
+    if(!is.null(ds$hclust) && (input$dsClustEmbedColor %in% ds$colsToUse)) {
+      cl <- ds$hclust
+      class(cl) <- 'hclust'
+      ds$hclust <- as.hclust(stats::reorder(
+        as.dendrogram(cl),
+        ds$map$codes[,findColIds(input$dsClustEmbedColor, ds$colsToUse)],
+        mean
+      ))
+    }
   })
 
   overviewServe('diffsomClustOverview', 'Clust', ds, input, output)
