@@ -302,7 +302,7 @@ diffsomRenderClusterHeat <- function(ds) {
 diffsomRenderClusterEmbedding <- function(ds) {
   if(is.null(ds$e))
     p("Compute the embedding first")
-  else if(is.null(ds$clust))
+  else if(is.null(ds$hclust))
     p("Create the clustering first")
   else div(
     plotOutput('plotDsClustEmbed',
@@ -635,9 +635,9 @@ serveDiffsom <- function(ws, ds, input, output, session) {
     ds$clust <- setClustNAs(input$dsClustDendroOutput)
   })
 
-  output$uiDsClusterEmbedding <- renderUI({
+  output$uiDsClusterEmbedding <- renderUI(
     diffsomRenderClusterEmbedding(ds)
-  })
+  )
 
   output$plotDsClustEmbed <- renderPlot({
     if(!is.null(ds$clust))
