@@ -307,7 +307,8 @@ diffsomRenderClusterEmbedding <- function(ds) {
     p("Create the clustering first")
   else div(
     plotOutput('plotDsClustEmbed',
-      width='40em', height='40em'),
+      width='40em', height='40em',
+      brush=brushOpts(id='dsBrushClustEmbed')),
     selectInput('dsClustEmbedColor',
       'Choose a marker',
       choices=c('(cluster)', unname(ds$prettyColnames)),
@@ -603,6 +604,17 @@ serveDiffsom <- function(ws, ds, input, output, session) {
   output$dsClustDendro <- renderShinyDendro({
     if(!is.null(ds$hclust)) {
       colors <- getHeatmapColors(ds, input$dsClusterHeat)
+      if(!is.null(input$dsBrushClustEmbed)) {
+        b <- input$dsBrushClustEmbed
+        st <- table(data.frame(
+          som=ds$map$mapping[,1],
+          tf=ds$e[,1]>=b$xmin & ds$e[,1]<=b$xmax &
+             ds$e[,2]>=b$ymin & ds$e[,2]<=b$ymax
+        ))
+        br <- rep(0, length(ds$clust))
+        br[as.numeric(rownames(st))] <- st[,'TRUE']/apply(st,1,function(v) max(sum(v), 1))
+        colors <- cbind(colors, Brush=EmbedSOM::ExpressionPalette(100)[1+as.integer(99*br)])
+      }
       shinyDendro('dsClustDendroOutput',
         ds$hclust$height,
         ds$hclust$merge,
