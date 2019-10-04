@@ -445,8 +445,6 @@ diffsomRenderExport <- function(ds) {
     else tooltip("The exported file can be imported to DiffSOM using readRDS, and used as map= argument of function Embed().",
       shinySaveButton("dsExportDSMap", "DiffSOM map RDS", "Save the DiffSOM MAP RDS", filename='map.RDS')),
 
-    #shinySaveButton("dsExportDSObj", "DiffSOM object RDS", "Save DiffSOM Object RDS", filename='dataset.RDS'),
-
     h3("Different export formats"),
     tooltip("Export FCS file with the embedding and population assignment.",
       shinySaveButton("dsExportFCS", "Export FCS", "Save Flow Cytometry Standard (FCS) file", filename='export.fcs')),
@@ -735,7 +733,6 @@ serveDiffsom <- function(ws, ds, input, output, session) {
 
   shinyFileSave(input, "dsExportPops", roots=getForeignRoots())
   shinyFileSave(input, "dsExportDSMap", roots=getForeignRoots())
-  #shinyFileSave(input, "dsExportDSObj", roots=getForeignRoots())
   shinyFileSave(input, "dsExportFCS", roots=getForeignRoots())
   shinyFileSave(input, "dsExportCSV", roots=getForeignRoots())
 
@@ -763,15 +760,6 @@ serveDiffsom <- function(ws, ds, input, output, session) {
       showNotification(type='message', "DiffSOM map saved.")
     }
   })
-
-  if(F) { #TODO: Implement this (now it's better to just export the map)
-    observeEvent(input$dsExportDSObj, {
-      outpath <- parseSavePath(getForeignRoots(), input$dsExportDSObj)
-      if(dim(outpath)[1]==1) {
-        showNotification(type='message', "DiffSOM object export is not implemented yet.")
-      }
-    })
-  }
 
   observeEvent(input$dsExportFCS, {
     outpath <- parseSavePath(getForeignRoots(), input$dsExportFCS)
