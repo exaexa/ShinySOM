@@ -6,6 +6,50 @@ TRANSFORM_LIST <- list(
     check=function(d, input) TRUE,
     trans=function(d, input) d
   ),
+  logicle=list(
+    name="Logicle",
+    renderParams=function() div(
+        numericInput('dsTransLogicleW', "W (linearization width)", value=.5, step=0.01, min=0, max=1),
+        numericInput('dsTransLogicleT', "log(t) (data bit width)", value=18, step=0.1, min=0, max=32),
+        numericInput('dsTransLogicleM', "M (output range)", value=4.5, step=0.1, min=0.1, max=10),
+        numericInput('dsTransLogicleA', "A (additional negative range)", value=0, step=0.1, min=0, max=1.5)
+    ),
+    check=function(d, input) TRUE,
+    trans=function(d, input)
+      flowCore::logicleTransform(
+        w=input$dsTransLogicleW,
+        t=as.integer(2^input$dsTransLogicleT),
+        m=input$dsTransLogicleM,
+        a=input$dsTransLogicleA)(d)
+  ),
+  asinh=list(
+    name="Hyperbolic arcSin",
+    renderParams=function()
+      div(
+        numericInput('dsTransPAsinhCq', "Center (quantile)", value=0.05, step=0.01, min=0, max=1),
+        numericInput('dsTransPAsinhS', "log-scale", value=0, step=1, min=-20, max=20)
+      ),
+    check=function(d, input) TRUE,
+    trans=function(d, input) asinh((d-quantile(d, input$dsTransPAsinhCq))*exp(input$dsTransPAsinhS))
+  ),
+  biexp=list(
+    name="Biexponential",
+    renderParams=function() div(
+      numericInput('dsTransBiexW', 'Center (W)', value=0, step=1),
+      numericInput('dsTransBiexA', 'Positive scale (A)', value=0.5, step=0.1, min=0),
+      numericInput('dsTransBiexB', 'Positive compresion (B)', value=1, step=0.1, min=0),
+      numericInput('dsTransBiexC', 'Negative scale (C)', value=0.5, step=0.1, min=0),
+      numericInput('dsTransBiexD', 'Negative compresion (D)', value=1, step=0.1, min=0)
+    ),
+    check=function(d,input) TRUE,
+    trans=function(d,input)
+      flowCore::biexponentialTransform(
+        w=input$dsTransBiexW,
+        a=input$dsTransBiexA,
+        b=input$dsTransBiexB,
+        c=input$dsTransBiexC,
+        d=input$dsTransBiexD)(d)
+  ),
   log=list(
     name="Logarithm+P",
     renderParams=function()
@@ -15,54 +59,18 @@ TRANSFORM_LIST <- list(
         stop("P is too low to remove negative values"),
     trans=function(d, input) log(d+input$dsTransPLogP)
   ),
-  logicle=list(
-    name="Simplified logicle",
-    renderParams=function() div(
-        numericInput('dsTransPLogicleQR', "qR (linearization quantile)", value=.05, step=0.01, min=0, max=1),
-        numericInput('dsTransPLogicleN', "Linear root", value=2, step=0.1, min=0.1, max=30),
-        numericInput('dsTransPLogicleP', "Logarithm scale (inverse)", value=15, step=0.1, min=0.001)
-    ),
-    check=function(d, input) TRUE,
-    trans=function(d, input) {
-      z <- quantile(d, input$dsTransPLogicleQR)
-      d <- d-z
-      pw <- 1/input$dsTransPLogicleN
-      pp <- input$dsTransPLogicleP
-      d[d<0] <- (1-((1-d[d<0])^pw))/pw
-      d[d>0] <- log(1+d[d>0]/pp)*pp
-      d
-    }
-  ),
-  asinh=list(
-    name="Hyperbolic arcSin",
-    renderParams=function()
-      div(
-        numericInput('dsTransPAsinhCq', "Center (quantile)", value=0.05, step=0.01, min=0, max=1),
-        numericInput('dsTransPAsinhS', "Scale (inverse)", value=15, step=0.1, min=0.001)
-      ),
-    check=function(d, input) TRUE,
-    trans=function(d, input) asinh((d-quantile(d, input$dsTransPAsinhCq))/input$dsTransPAsinhS)
-  ),
-  #TODO:
-  #biexp=list(
-  #  name="Biexponential",
-  #  #TODO: f(x) = a*exp(b*(x-w))-c*exp(-d*(x-w))+f  (invert this! :D)
-  #  renderParams=function() div(),
-  #  check=function(d, input) TRUE,
-  #  trans=function(d, input) d
-  #),
   `2log`=list(
     name="2-sided logarithm",
     renderParams=function()
       div(
         numericInput('dsTransP2LogCq', "Center (quantile)", value=0.05, step=0.01, min=0, max=1),
-        numericInput('dsTransP2LogS', "Scale (inverse)", value=15, step=0.1, min=0.001)
+        numericInput('dsTransP2LogS', "Log-scale", value=0, step=1, min=-20, max=20)
       ),
     check=function(d, input) TRUE,
     trans=function(d, input) {
       center <- quantile(d, input$dsTransP2LogCq)
       log(1+
-        abs(d-center)*input$dsTransP2LogS
+        abs(d-center)*exp(input$dsTransP2LogS)
       )*sign(d-center)
     }
   ),
