@@ -12,6 +12,7 @@ reactiveValsDiffsom <- function()
     prettyColnames=NULL,
     seed=NULL,
     colsToUse=NULL,
+    importance=NULL,
     xdim=NULL,
     rlen=NULL,
     map=NULL,
@@ -40,6 +41,7 @@ dsInitFromDataset <- function(ds, dataset) {
   ds$prettyColnames <- NULL
   ds$seed <- NULL
   ds$colsToUse <- NULL
+  ds$importance <- NULL
   ds$xdim <- NULL
   ds$rlen <- NULL
   ds$map <- NULL
@@ -59,6 +61,7 @@ dsInitFromDataset <- function(ds, dataset) {
   ds$prettyColnames <- dataset$prettyColnames
   ds$seed <- dataset$seed
   ds$colsToUse <- dataset$colsToUse
+  ds$importance <- dataset$importance
   ds$xdim <- dataset$xdim
   ds$rlen <- dataset$rlen
   ds$map <- dataset$map
@@ -82,6 +85,7 @@ dsGetDataset <- function(ds) {
   prettyColnames=ds$prettyColnames,
   seed=ds$seed,
   colsToUse=ds$colsToUse,
+  importance=ds$importance,
   xdim=ds$xdim,
   rlen=ds$rlen,
   map=ds$map,
@@ -168,27 +172,31 @@ diffsomRenderEmbedding <- function(ds) {
   choices <- ds$prettyColnames
   names(choices) <- choices
 
-  #TODO: this deserves an accordion as in here: https://getbootstrap.com/docs/4.0/components/collapse/#accordion-example
-
   fluidRow(
     column(3,
       tooltip("You may choose parameters for constructing the self-organizing map (SOM) here. The SOM will be later used for describing and clustering the cell space.", h3("SOM")),
-      tooltip("Select markers and data columns that carry information useful for this step of analysis and dissection.",
-      pickerInput('dsEmbedColsToUse', "Columns to use",
-        choices=choices,
-        options=list(
-          size=10,
-          `actions-box` = TRUE,
-          `selected-text-format` = 'count > 3'
-        ),
-        multiple=T,
-        selected=isolate(if(is.null(ds$colsToUse)) ds$prettyColnames else ds$colsToUse))),
-      tooltip("Choose the size of the SOM square side. The SOM will be able to approximate roughly side^2 different clusters. Larger SOMs capture more details, but take longer to compute.",
-      sliderInput('dsEmbedXdim', "SOM size (nodes on square side)", value=isolate(if(is.null(ds$xdim)) 16 else ds$xdim), min=2, max=50, step=1)),
-      tooltip("How many times the data will be presented to SOM, larger values may produce a better fitting SOM for the cost of computation time. Increase the value slightly if working with less than 10.000 cells. For datasets over 100.000 cells, the value can be safely decreased. Generally, epochs*cells should be at least 100.000.",
-      sliderInput('dsEmbedRlen', "SOM epochs", value=isolate(if(is.null(ds$rlen)) 10 else ds$rlen), min=1, max=100, step=1)),
-      tooltip("Random seed for SOM training. Choose a different value to train a different SOM.",
-      numericInput('dsEmbedSeed', "Random seed", value=isolate(if(is.null(ds$seed)) 1 else ds$seed), min=0, max=999999999, step=1)),
+      bs_accordion(id='dsSomSettingsAccordion') %>%
+      bs_append(title="Basic settings", content=div(
+        tooltip("Select markers and data columns that carry information useful for this step of analysis and dissection.",
+        pickerInput('dsEmbedColsToUse', "Columns to use",
+          choices=choices,
+          options=list(
+            size=10,
+            `actions-box` = TRUE,
+            `selected-text-format` = 'count > 3'
+          ),
+          multiple=T,
+          selected=isolate(if(is.null(ds$colsToUse)) ds$prettyColnames else ds$colsToUse))),
+        tooltip("Choose the size of the SOM square side. The SOM will be able to approximate roughly side^2 different clusters. Larger SOMs capture more details, but take longer to compute.",
+        sliderInput('dsEmbedXdim', "SOM size (nodes on square side)", value=isolate(if(is.null(ds$xdim)) 16 else ds$xdim), min=2, max=50, step=1)),
+      )) %>%
+      bs_append(title="Column importance", content=uiOutput('uiDsEmbedImportance')) %>%
+      bs_append(title="Training parameters", content=div(
+        tooltip("How many times the data will be presented to SOM, larger values may produce a better fitting SOM for the cost of computation time. Increase the value slightly if working with less than 10.000 cells. For datasets over 100.000 cells, the value can be safely decreased. Generally, epochs*cells should be at least 100.000.",
+        sliderInput('dsEmbedRlen', "SOM epochs", value=isolate(if(is.null(ds$rlen)) 10 else ds$rlen), min=1, max=100, step=1)),
+        tooltip("Random seed for SOM training. Choose a different value to train a different SOM.",
+        numericInput('dsEmbedSeed', "Random seed", value=isolate(if(is.null(ds$seed)) 1 else ds$seed), min=0, max=999999999, step=1))
+      )),
       tooltip("SOM training may take several seconds to several minutes (on datasets larger than around one million cells).",
       actionButton('dsEmbedDoSOM', "Compute SOM")),
       uiOutput('uiDsEmbedParams')
@@ -200,6 +208,38 @@ diffsomRenderEmbedding <- function(ds) {
       uiOutput('uiDsEmbedEView')
     )
   )
+}
+
+diffsomRenderImportances <- function(colsToUse, orig) {
+  res <- tagList()
+  for(i in seq_len(length(colsToUse)))
+    res <- tagAppendChild(res,
+      sliderInput(
+        paste0('dsImportance',i),
+        colsToUse[i],
+        value=if(is.null(orig) || is.na(orig[colsToUse[i]])) 1 else orig[colsToUse[i]],
+        min=0.1,
+        max=10,
+        step=.1
+      )
+    )
+  res
+}
+
+diffsomGatherImportances <- function(input, colsToUse) {
+  n <- length(colsToUse)
+  res <- rep(1, n)
+  for(i in seq_len(n))
+    res[i] <- input[[paste0('dsImportance', i)]]
+  names(res) <- colsToUse
+  res
+}
+
+diffsomPrepareData <- function(data, colnames, colsToUse, importance) {
+  d <- apply(data[,findColIds(colsToUse, colnames), drop=F], 2, transformDoScale)
+  im <- importance[colsToUse]
+  im[is.na(im)] <- 1
+  t(t(d)*im)
 }
 
 diffsomRenderEmbeddingParams <- function(ds) {
@@ -513,15 +553,16 @@ serveDiffsom <- function(ws, ds, input, output, session) {
     ds$xdim <- input$dsEmbedXdim
     ds$rlen <- input$dsEmbedRlen
     ds$seed <- input$dsEmbedSeed
+    ds$importance <- diffsomGatherImportances(input, ds$colsToUse)
 
     set.seed(ds$seed)
     showNotification("Computing SOM. This may take a while...")
     ds$map <- EmbedSOM::SOM(
-      data=ds$data[,findColIds(ds$colsToUse, ds$prettyColnames)],
+      data=diffsomPrepareData(ds$data, ds$prettyColnames, ds$colsToUse, ds$importance),
       xdim=ds$xdim,
       ydim=ds$xdim,
       rlen=ds$rlen,
-      negAlpha=0,
+      negAlpha=0, #is any parametrization of this viable?
       negRadius=1)
     ds$e <- NULL
     ds$clust <- NULL
@@ -530,20 +571,25 @@ serveDiffsom <- function(ws, ds, input, output, session) {
     showNotification(type='message', "SOM ready.")
   })
 
-  output$uiDsEmbedParams <- renderUI({
-    diffsomRenderEmbeddingParams(ds)
-  })
+  output$uiDsEmbedImportance <- renderUI(
+    diffsomRenderImportances(input$dsEmbedColsToUse, ds$importance)
+  )
 
-  output$uiDsEmbedSOMView <- renderUI({
+  output$uiDsEmbedParams <- renderUI(
+    diffsomRenderEmbeddingParams(ds)
+  )
+
+  output$uiDsEmbedSOMView <- renderUI(
     diffsomRenderEmbedSOMView(ds)
-  })
+  )
 
   output$plotDsEmbedSOMView <- renderPlot({
+    print("here!")
     plotSOMOverview(
       ds$map$xdim,
-      ds$map$xdim,
-      ds$map$codes[,findColIds(input$dsEmbedSOMViewCol, ds$colsToUse)],
-      ds$data[,findColIds(input$dsEmbedSOMViewCol, ds$prettyColnames)],
+      ds$map$ydim,
+      ds$map$codes[,findColIds(input$dsEmbedSOMViewCol, ds$colsToUse), drop=F],
+      ds$data[,findColIds(input$dsEmbedSOMViewCol, ds$prettyColnames), drop=F],
       ds$map$mapping[,1])
   })
 
@@ -556,7 +602,7 @@ serveDiffsom <- function(ws, ds, input, output, session) {
       ds$emcoords <- input$dsEmbedCoords
 
       ds$e <- EmbedSOM::EmbedSOM(
-        data=ds$data[,findColIds(ds$colsToUse, ds$prettyColnames)],
+        data=diffsomPrepareData(ds$data, ds$prettyColnames, ds$colsToUse, ds$importance),
         map=ds$map,
         smooth=ds$smooth,
         adjust=ds$adjust,
@@ -572,7 +618,8 @@ serveDiffsom <- function(ws, ds, input, output, session) {
   })
 
   output$plotDsEmbedEExpr <- renderPlot({
-    plotEmbedExpr(
+    if(is.null(input$dsEmbedEViewCol)) NULL
+    else plotEmbedExpr(
       ds$e,
       if(input$dsEmbedEViewCol=='(show density)') NULL
       else ds$data[,findColIds(input$dsEmbedEViewCol, ds$prettyColnames)],
@@ -593,8 +640,7 @@ serveDiffsom <- function(ws, ds, input, output, session) {
     if(!is.null(ds$map)) {
       ds$hclust <- CLUSTER_METHODS[[input$dsClusterMethod]](
         codes=ds$map$codes,
-        data=ds$data[,findColIds(ds$colsToUse, ds$prettyColnames)],
-        importance=NULL, #TODO: add support
+        data=diffsomPrepareData(ds$data, ds$prettyColnames, ds$colsToUse, ds$importance),
         mapping=ds$map$mapping[,1])
     }
   })

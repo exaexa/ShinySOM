@@ -1,4 +1,5 @@
 library(shiny)
+library(bsplus)
 library(shinyFiles)
 library(shinyWidgets)
 library(shinyDendro)

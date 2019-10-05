@@ -1,5 +1,5 @@
 
-wrapHClustFunc <- function(distances, method) (function(codes, data, importance=NULL, mapping) {
+wrapHClustFunc <- function(distances, method) (function(codes, data, mapping) {
   cl <- stats::hclust(stats::dist(codes, method=distances), method=method)
   list(height=cl$height, merge=cl$merge, order=cl$order)
 })
@@ -15,10 +15,11 @@ CLUSTER_METHODS=list(
   `Manhattan/Complete`=wrapHClustFunc('manhattan', 'complete'),
   `Euclidean/Average`=wrapHClustFunc('euclidean', 'average'),
   `Manhattan/Average`=wrapHClustFunc('manhattan', 'average'),
-  `Mahalanobis/Average`=function(codes, data, importance=NULL, mapping) {
+  `Mahalanobis/Average`=function(codes, data, mapping) {
+    #TODO: progress bar
     cl <- mhca::cutreeApriori(mhca::fixNonMonotHca(
       mhca::mhclust(
-        x = if(is.null(importance)) data else (data%*%diag(importance)),
+        x = data,
         g = mapping,
         quick = T,
         gIntra = F)))
