@@ -13,7 +13,6 @@ reactiveValsDiffsom <- function()
     seed=NULL,
     colsToUse=NULL,
     xdim=NULL,
-    ydim=NULL,
     rlen=NULL,
     map=NULL,
     smooth=NULL,
@@ -42,7 +41,6 @@ dsInitFromDataset <- function(ds, dataset) {
   ds$seed <- NULL
   ds$colsToUse <- NULL
   ds$xdim <- NULL
-  ds$ydim <- NULL
   ds$rlen <- NULL
   ds$map <- NULL
   ds$smooth <- NULL
@@ -62,7 +60,6 @@ dsInitFromDataset <- function(ds, dataset) {
   ds$seed <- dataset$seed
   ds$colsToUse <- dataset$colsToUse
   ds$xdim <- dataset$xdim
-  ds$ydim <- dataset$ydim
   ds$rlen <- dataset$rlen
   ds$map <- dataset$map
   ds$smooth <- dataset$smooth
@@ -86,7 +83,6 @@ dsGetDataset <- function(ds) {
   seed=ds$seed,
   colsToUse=ds$colsToUse,
   xdim=ds$xdim,
-  ydim=ds$ydim,
   rlen=ds$rlen,
   map=ds$map,
   smooth=ds$smooth,
@@ -187,9 +183,8 @@ diffsomRenderEmbedding <- function(ds) {
         ),
         multiple=T,
         selected=isolate(if(is.null(ds$colsToUse)) ds$prettyColnames else ds$colsToUse))),
-      tooltip("Choose the X and Y sizes of SOM. The SOM will be able to approximate roughly X*Y different clusters. Larger SOMs capture more details, but take longer to compute.",
-      sliderInput('dsEmbedXdim', "SOM nodes X", value=isolate(if(is.null(ds$xdim)) 16 else ds$xdim), min=2, max=50, step=1)),
-      sliderInput('dsEmbedYdim', "SOM nodes Y", value=isolate(if(is.null(ds$ydim)) 16 else ds$ydim), min=2, max=50, step=1),
+      tooltip("Choose the size of the SOM square side. The SOM will be able to approximate roughly side^2 different clusters. Larger SOMs capture more details, but take longer to compute.",
+      sliderInput('dsEmbedXdim', "SOM size (nodes on square side)", value=isolate(if(is.null(ds$xdim)) 16 else ds$xdim), min=2, max=50, step=1)),
       tooltip("How many times the data will be presented to SOM, larger values may produce a better fitting SOM for the cost of computation time. Increase the value slightly if working with less than 10.000 cells. For datasets over 100.000 cells, the value can be safely decreased. Generally, epochs*cells should be at least 100.000.",
       sliderInput('dsEmbedRlen', "SOM epochs", value=isolate(if(is.null(ds$rlen)) 10 else ds$rlen), min=1, max=100, step=1)),
       tooltip("Random seed for SOM training. Choose a different value to train a different SOM.",
@@ -218,7 +213,7 @@ diffsomRenderEmbeddingParams <- function(ds) {
     tooltip("Adjust parameter for EmbedSOM. Larger values remove non-local information from approximation (e.g. pathways or noise that is not captured by SOM).",
     sliderInput('dsEmbedAdjust', "Adjust", value=if(is.null(ds$adjust)) 1 else ds$adjust, min=0, max=5, step=.1)),
     tooltip("K parameter for EmbedSOM. Large values impact computation time, and may produce too smooth embedding. Small values cause approximation failures.",
-    sliderInput('dsEmbedK', "NNs (k)", value=if(is.null(ds$k)) 20 else ds$k, min=3, max=ds$xdim*ds$ydim, step=1)),
+    sliderInput('dsEmbedK', "NNs (k)", value=if(is.null(ds$k)) 20 else ds$k, min=3, max=ds$xdim^2, step=1)),
     tooltip("Meta-embedding. The selected algorithm will embed only the SOM nodes, atop of which actual cells will be quickly fitted by EmbedSOM. Some choices require lowering Adjust.",
     selectInput('dsEmbedCoords', "Embedding coords manipulation", choices=emcoords, selected=ds$emcoords)),
     tooltip("Embedding computation generally takes several seconds for datasets smaller than million cells",
@@ -236,7 +231,7 @@ diffsomRenderEmbedSOMView <- function(ds) {
       selected=ds$colsToUse[1]
       )),
     tooltip("Each point represents a trained SOM node (and the corresponding cell cluster around it). Color = expression value of the selected marker. Size of the gray border grows with growing data variance in the cluster.",
-    plotOutput("plotDsEmbedSOMView", width=paste0(2*(1+ds$map$xdim),'em'), height=paste0(2*(1+ds$map$ydim),'em')))
+    plotOutput("plotDsEmbedSOMView", width=paste0(2*(1+ds$map$xdim),'em'), height=paste0(2*(1+ds$map$xdim),'em')))
   )
 }
 
@@ -277,7 +272,7 @@ diffsomRenderClustering <- function(ds) {
     column(4,
       tooltip("Use the shinyDendro interface for assigning labels to dendrogram branches. Click the interface to focus it; then use keyboard keys (a-z, 1-9) to choose a cluster mark; then click a branch to assign the mark. Use Space to erase the marks.",
       h4("Cluster assignment")),
-      shinyDendroOutput("dsClustDendro", width='100%', height=paste0(max(500, 2*ds$map$xdim*ds$map$ydim),'px'))
+      shinyDendroOutput("dsClustDendro", width='100%', height='40em')
     ),
     column(4,
       tooltip("This is a rough preview of how the cell classification looks in the embedding. Use the overview scatterplots below to obtain more precise views.",
@@ -516,7 +511,6 @@ serveDiffsom <- function(ws, ds, input, output, session) {
   observeEvent(input$dsEmbedDoSOM, {
     ds$colsToUse <- input$dsEmbedColsToUse
     ds$xdim <- input$dsEmbedXdim
-    ds$ydim <- input$dsEmbedYdim
     ds$rlen <- input$dsEmbedRlen
     ds$seed <- input$dsEmbedSeed
 
@@ -525,7 +519,7 @@ serveDiffsom <- function(ws, ds, input, output, session) {
     ds$map <- EmbedSOM::SOM(
       data=ds$data[,findColIds(ds$colsToUse, ds$prettyColnames)],
       xdim=ds$xdim,
-      ydim=ds$ydim,
+      ydim=ds$xdim,
       rlen=ds$rlen,
       negAlpha=0,
       negRadius=1)
@@ -547,7 +541,7 @@ serveDiffsom <- function(ws, ds, input, output, session) {
   output$plotDsEmbedSOMView <- renderPlot({
     plotSOMOverview(
       ds$map$xdim,
-      ds$map$ydim,
+      ds$map$xdim,
       ds$map$codes[,findColIds(input$dsEmbedSOMViewCol, ds$colsToUse)],
       ds$data[,findColIds(input$dsEmbedSOMViewCol, ds$prettyColnames)],
       ds$map$mapping[,1])
