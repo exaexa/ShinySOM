@@ -14,6 +14,8 @@ reactiveValsDiffsom <- function()
     seed=NULL,
     colsToUse=NULL,
     importance=NULL,
+    somMetric=NULL,
+    dataMetric=NULL,
     xdim=NULL,
     rlen=NULL,
     map=NULL,
@@ -42,6 +44,8 @@ dsInitFromDataset <- function(ds, dataset) {
   ds$seed <- NULL
   ds$colsToUse <- NULL
   ds$importance <- NULL
+  ds$somMetric <- NULL
+  ds$dataMetric <- NULL
   ds$xdim <- NULL
   ds$rlen <- NULL
   ds$map <- NULL
@@ -62,6 +66,8 @@ dsInitFromDataset <- function(ds, dataset) {
   ds$seed <- dataset$seed
   ds$colsToUse <- dataset$colsToUse
   ds$importance <- dataset$importance
+  ds$somMetric <- dataset$somMetric
+  ds$dataMetric <- dataset$dataMetric
   ds$xdim <- dataset$xdim
   ds$rlen <- dataset$rlen
   ds$map <- dataset$map
@@ -86,6 +92,8 @@ dsGetDataset <- function(ds) {
   seed=ds$seed,
   colsToUse=ds$colsToUse,
   importance=ds$importance,
+  somMetric=ds$somMetric,
+  dataMetric=ds$dataMetric,
   xdim=ds$xdim,
   rlen=ds$rlen,
   map=ds$map,
@@ -171,6 +179,11 @@ diffsomRenderTransform <- function(ds) {
 diffsomRenderEmbedding <- function(ds) {
   choices <- ds$prettyColnames
   names(choices) <- choices
+  metrics <- c(
+    `Manhattan (sum)`='manhattan',
+    `Euclidean (spherical)`='euclidean',
+    `Maximum (Chebyshev)`='maximum'
+  )
 
   fluidRow(
     column(3,
@@ -194,8 +207,12 @@ diffsomRenderEmbedding <- function(ds) {
       bs_append(title="Training parameters", content=div(
         tooltip("How many times the data will be presented to SOM, larger values may produce a better fitting SOM for the cost of computation time. Increase the value slightly if working with less than 10.000 cells. For datasets over 100.000 cells, the value can be safely decreased. Generally, epochs*cells should be at least 100.000.",
         sliderInput('dsEmbedRlen', "SOM epochs", value=isolate(if(is.null(ds$rlen)) 10 else ds$rlen), min=1, max=100, step=1)),
-        tooltip("Random seed for SOM training. Choose a different value to train a different SOM.",
-        numericInput('dsEmbedSeed', "Random seed", value=isolate(if(is.null(ds$seed)) 1 else ds$seed), min=0, max=999999999, step=1))
+        tooltip("Random seed for SOM training. Choose a different value to train a different SOM from the same data.",
+        numericInput('dsEmbedSeed', "Random seed", value=isolate(if(is.null(ds$seed)) 1 else ds$seed), min=0, max=999999999, step=1)),
+        tooltip("This metric will be used to measure the similarity of single cell parameter expressions, affecting the effective distances of the clusters.",
+        selectInput('dsEmbedDataMetric', "Cell space metric", choices=metrics, selected=isolate(if(is.null(ds$dataMetric)) 'euclidean' else ds$dataMetric))),
+        tooltip("This metric will be used in the output embedded (i.e. SOM) space, affecting the distribution and shape of the identified clusters in the map.",
+        selectInput('dsEmbedSOMMetric', "Embedding space metric", choices=metrics, selected=isolate(if(is.null(ds$somMetric)) 'maximum' else ds$somMetric)))
       )),
       tooltip("SOM training may take several seconds to several minutes (on datasets larger than around one million cells).",
       actionButton('dsEmbedDoSOM', "Compute SOM")),
@@ -555,16 +572,28 @@ serveDiffsom <- function(ws, ds, input, output, session) {
     ds$rlen <- input$dsEmbedRlen
     ds$seed <- input$dsEmbedSeed
     ds$importance <- diffsomGatherImportances(input, ds$colsToUse)
+    ds$somMetric <- input$dsEmbedSOMMetric
+    ds$dataMetric <- input$dsEmbedDataMetric
+
+    showNotification("Computing SOM. This may take a while...")
+
+    distf <- 2
+    if(ds$dataMetric=='manhattan') distf<-1
+    if(ds$dataMetric=='maximum') distf<-3
+    nhbr.method <- 'maximum'
+    if(ds$somMetric %in% c('manhattan', 'euclidean'))
+      nhbr.method <- ds$somMetric
 
     set.seed(ds$seed)
-    showNotification("Computing SOM. This may take a while...")
     ds$map <- EmbedSOM::SOM(
       data=diffsomPrepareData(ds$data, ds$prettyColnames, ds$colsToUse, ds$importance),
       xdim=ds$xdim,
       ydim=ds$xdim,
       rlen=ds$rlen,
       negAlpha=0, #is any parametrization of this viable?
-      negRadius=1)
+      negRadius=1,
+      distf=distf,
+      nhbr.method=nhbr.method)
     ds$e <- NULL
     ds$clust <- NULL
     ds$hclust <- NULL
@@ -585,7 +614,6 @@ serveDiffsom <- function(ws, ds, input, output, session) {
   )
 
   output$plotDsEmbedSOMView <- renderPlot({
-    print("here!")
     plotSOMOverview(
       ds$map$xdim,
       ds$map$ydim,

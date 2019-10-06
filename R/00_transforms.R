@@ -9,10 +9,10 @@ TRANSFORM_LIST <- list(
   logicle=list(
     name="Logicle",
     renderParams=function() div(
-        numericInput('dsTransLogicleW', "W (linearization width)", value=.5, step=0.01, min=0, max=1),
-        numericInput('dsTransLogicleT', "log(t) (data bit width)", value=18, step=0.1, min=0, max=32),
-        numericInput('dsTransLogicleM', "M (output range)", value=4.5, step=0.1, min=0.1, max=10),
-        numericInput('dsTransLogicleA', "A (additional negative range)", value=0, step=0.1, min=0, max=1.5)
+        sliderInput('dsTransLogicleW', "W (linearization width)", value=.5, step=0.05, min=0, max=1),
+        sliderInput('dsTransLogicleT', "log(t) (data bit width)", value=18, step=0.5, min=0.5, max=32),
+        sliderInput('dsTransLogicleM', "M (output range)", value=4.5, step=0.1, min=0.1, max=10),
+        sliderInput('dsTransLogicleA', "A (additional negative range)", value=0, step=0.1, min=0, max=1.5)
     ),
     check=function(d, input) TRUE,
     trans=function(d, input)
@@ -26,8 +26,8 @@ TRANSFORM_LIST <- list(
     name="Hyperbolic arcSin",
     renderParams=function()
       div(
-        numericInput('dsTransPAsinhCq', "Center (quantile)", value=0.05, step=0.01, min=0, max=1),
-        numericInput('dsTransPAsinhS', "log-scale", value=0, step=1, min=-20, max=20)
+        sliderInput('dsTransPAsinhCq', "Center (quantile)", value=0.05, step=0.01, min=0, max=1),
+        sliderInput('dsTransPAsinhS', "log-scale", value=0, step=.5, min=-20, max=20)
       ),
     check=function(d, input) TRUE,
     trans=function(d, input) asinh((d-quantile(d, input$dsTransPAsinhCq))*exp(input$dsTransPAsinhS))
@@ -35,11 +35,11 @@ TRANSFORM_LIST <- list(
   biexp=list(
     name="Biexponential",
     renderParams=function() div(
-      numericInput('dsTransBiexW', 'Center (W)', value=0, step=1),
-      numericInput('dsTransBiexA', 'Positive scale (A)', value=0.5, step=0.1, min=0),
-      numericInput('dsTransBiexB', 'Positive compresion (B)', value=1, step=0.1, min=0),
-      numericInput('dsTransBiexC', 'Negative scale (C)', value=0.5, step=0.1, min=0),
-      numericInput('dsTransBiexD', 'Negative compresion (D)', value=1, step=0.1, min=0)
+      sliderInput('dsTransBiexW', 'Center (W)', value=0, step=1),
+      sliderInput('dsTransBiexA', 'Positive scale (A)', value=0.5, step=0.1, min=0),
+      sliderInput('dsTransBiexB', 'Positive compresion (B)', value=1, step=0.1, min=0),
+      sliderInput('dsTransBiexC', 'Negative scale (C)', value=0.5, step=0.1, min=0),
+      sliderInput('dsTransBiexD', 'Negative compresion (D)', value=1, step=0.1, min=0)
     ),
     check=function(d,input) TRUE,
     trans=function(d,input)
@@ -63,8 +63,8 @@ TRANSFORM_LIST <- list(
     name="2-sided logarithm",
     renderParams=function()
       div(
-        numericInput('dsTransP2LogCq', "Center (quantile)", value=0.05, step=0.01, min=0, max=1),
-        numericInput('dsTransP2LogS', "Log-scale", value=0, step=1, min=-20, max=20)
+        sliderInput('dsTransP2LogCq', "Center (quantile)", value=0.05, step=0.01, min=0, max=1),
+        sliderInput('dsTransP2LogS', "Log-scale", value=0, step=1, min=-20, max=20)
       ),
     check=function(d, input) TRUE,
     trans=function(d, input) {
