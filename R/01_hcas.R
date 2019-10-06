@@ -15,15 +15,20 @@ CLUSTER_METHODS=list(
   `Manhattan/Complete`=wrapHClustFunc('manhattan', 'complete'),
   `Euclidean/Average`=wrapHClustFunc('euclidean', 'average'),
   `Manhattan/Average`=wrapHClustFunc('manhattan', 'average'),
-  `Mahalanobis/Average`=function(codes, data, mapping) {
-    #TODO: progress bar
-    cl <- mhca::cutreeApriori(mhca::fixNonMonotHca(
-      mhca::mhclust(
+  `Mahalanobis/Average`=function(codes, data, mapping) withProgress(
+    message="Clustering...",
+    value=1, min=1, max=3, {
+      cl <- mhca::mhclust(
         x = data,
         g = mapping,
         quick = T,
-        gIntra = F)))
-    list(height=cl$height, merge=cl$merge, order=cl$order)
-  }
+        gIntra = F)
+      setProgress("Fixing monotonicity...", value=2)
+      cl <- mhca::fixNonMonotHca(cl)
+      setProgress("Converting to SOM clusters...", value=3)
+      cl <- mhca::cutreeApriori(cl)
+      list(height=cl$height, merge=cl$merge, order=cl$order)
+    }
+  )
 )
 

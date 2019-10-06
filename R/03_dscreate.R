@@ -139,7 +139,7 @@ dsCreateDoLoad <- function(name, fs, subsample, noComp, nCells, colsToLoad, pret
 
     ds <- list()
 
-    ds$files <- gsub('\\.fcs$','', gsub('.*/','',fns)) #TODO: perhaps leave in some directory info?
+    ds$files <- gsub('\\.fcs$','', gsub('.*/','',fns))
     ds$cellFile <- data$cellFile
     ds$prettyColnames <- dsCreatePrettyColnames(data)
 

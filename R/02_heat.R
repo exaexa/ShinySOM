@@ -11,6 +11,5 @@ plotDsAHeat <- function(clust, annotation, cellFile, files) {
   colnames(probs) <- annotation[levels(cl)]
   rownames(probs) <- files
 
-  #TODO: guess margin length from colnames/rownames length
   heatmap(scale(probs), margins=c(10,10), col=EmbedSOM::ExpressionPalette(100))
 }

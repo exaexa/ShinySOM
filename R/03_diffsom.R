@@ -4,7 +4,8 @@
 #
 
 reactiveValsDiffsom <- function()
-  #TODO: I guess we can create this and 3 extra lists from a single list of values right?
+  #TODO: It would be nice to simplify the assignments here (possibly using a
+  #      single list of values).
   reactiveValues(
     files=NULL,
     cellFile=NULL,
@@ -21,7 +22,6 @@ reactiveValsDiffsom <- function()
     k=NULL,
     emcoords=NULL,
     e=NULL,
-    #TODO: importance
     hclust=NULL,
     clust=NULL,
     annotation=NULL
@@ -420,7 +420,8 @@ diffsomRenderADiff <- function(ds) {
   )
 }
 
-#TODO: paired possibility (any reasonable way to assign the pair permutations in Shiny?)
+# TODO: there is the possibility to work with paired data in testing, but is
+# there any reasonable way to assign the pair permutations in Shiny?
 diffsomRenderASignificance <- function(ds) {
   if(is.null(ds$e))
     p("Embed the population first")

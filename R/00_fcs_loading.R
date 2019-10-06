@@ -63,29 +63,27 @@ loadFCSAggregate <- function(fileNames, cells, noComp) {
   ffs <- c()
   files <- c()
 
-  #TODO: what about turning off truncate_max_range?
+  for(i in seq_len(nf)) {
+    setProgress('Loading FCS file...', value=i)
+    ff <- flowCore::read.FCS(fileNames[i], truncate_max_range=F)
 
-    for(i in seq_len(nf)) {
-      setProgress('Loading FCS file...', value=i)
-      ff <- flowCore::read.FCS(fileNames[i])
+    ns <- min(nrow(ff), cf)
+    cs <- sample(nrow(ff), ns)
+    flowCore::exprs(ff) <- flowCore::exprs(ff)[cs,]
+    files <- c(files, rep(i, ns))
 
-      ns <- min(nrow(ff), cf)
-      cs <- sample(nrow(ff), ns)
-      flowCore::exprs(ff) <- flowCore::exprs(ff)[cs,]
-      files <- c(files, rep(i, ns))
+    if(!noComp)
+      ff <- loadFCSTryCompensate(ff, i, fileNames[i])
 
-      if(!noComp)
-        ff <- loadFCSTryCompensate(ff, i, fileNames[i])
-
-      setProgress('Aggregating...', value=i)
-      if(is.null(ffs))
-        ffs <- ff
-      else
-        flowCore::exprs(ffs) <- rbind(
-          flowCore::exprs(ffs),
-          flowCore::exprs(ff)
-        )
-    }
+    setProgress('Aggregating...', value=i)
+    if(is.null(ffs))
+      ffs <- ff
+    else
+      flowCore::exprs(ffs) <- rbind(
+        flowCore::exprs(ffs),
+        flowCore::exprs(ff)
+      )
+  }
 
   list(
     exprs = flowCore::exprs(ffs),

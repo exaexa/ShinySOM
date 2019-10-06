@@ -45,7 +45,7 @@ plotDsASig <- function(control, experiment, files, cellFile, e,
 	colv <- outer(p_greater,colv.greater)+
 		outer(p_less,colv.less)+
 		outer(1-p_greater-p_less,colv.inconclusive)
-	colv=colv[,,1]/255 #TODO explain the 3rd dimension... :]
+	colv=colv[,,1]/255
 	colv[colv>1] <- 1 # fixup rounding errors that sometimes kill rgb()
 	colv[colv<0] <- 0
   acl <- cl[!is.na(cl)]

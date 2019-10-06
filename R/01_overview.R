@@ -76,7 +76,6 @@ overviewRender <- function(ds, id='', savedSel, title="Overview", defaultColor="
 }
 
 overviewRenderPlot <- function(id, ds, size, h, v) {
-  #TODO: previewTransform goes here!
   my <- function(x) paste0(x,"_",id)
   if(h==0 && v==0) "Select markers first."
   else plotOutput(my('plotDsOverview'),
