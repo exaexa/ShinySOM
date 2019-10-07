@@ -14,6 +14,15 @@ devtools::install_github('exaexa/shinyDendro')
 devtools::install_github('exaexa/ShinySOM')
 ```
 
+You also need new versions of `shiny` and `htmlwidgets`, the older versions may contain issues that prevent e.g. the clustering interface from working correctly. You may want to make sure your versions are reasonably up-to-date. Specifically, _avoid_ combining `shiny-1.3.2` with `htmlwidgets-1.5`.
+
+```
+> packageVersion('shiny')
+[1] ‘1.4.0’
+> packageVersion('htmlwidgets')
+[1] ‘1.5’
+```
+
 ## Running ShinySOM
 
 ShinySOM requires some scratch space for its own data (user data uploads,

@@ -313,12 +313,14 @@ diffsomRenderEmbedEView <- function(ds) {
 #
 
 diffsomRenderClustering <- function(ds) {
-  if(is.null(ds$map)) tooltip("For performance and precision reasons, the clustering is ran atop the space pre-partitioned by the traned SOM.",
+  if(is.null(ds$map))
+    tooltip("For performance and precision reasons, the clustering is ran atop the space pre-partitioned by the traned SOM.",
     p("Compute the SOM first"))
   else div(
   fluidRow(
     column(3,
-      tooltip("Clustering allows classification of the cells into named categories, usually corresponding to biologically relevant populations.", h3("Clustering")),
+      tooltip("Clustering allows classification of the cells into named categories, usually corresponding to biologically relevant populations.",
+      h3("Clustering")),
       tooltip("The method will be used to create a hierarchical dendrogram that will serve as a basis for classification.",
       selectInput("dsClusterMethod", label="Hierarchical clustering method", choices=names(CLUSTER_METHODS), multiple=F)),
       tooltip("Dendrograms are usually created instantly; except for Mahalanobis-based clustering which takes several seconds.",
@@ -329,7 +331,7 @@ diffsomRenderClustering <- function(ds) {
     column(4,
       tooltip("Use the shinyDendro interface for assigning labels to dendrogram branches. Click the interface to focus it; then use keyboard keys (a-z, 1-9) to choose a cluster mark; then click a branch to assign the mark. Use Space to erase the marks.",
       h4("Cluster assignment")),
-      shinyDendroOutput("dsClustDendro", width='100%', height='40em')
+      uiOutput('uiDsClustDendroWrap')
     ),
     column(4,
       tooltip("This is a rough preview of how the cell classification looks in the embedding. Use the overview scatterplots below to obtain more precise views.",
@@ -339,6 +341,11 @@ diffsomRenderClustering <- function(ds) {
   ),
   uiOutput('diffsomClustOverview')
   )
+}
+
+diffsomRenderClustDendroWrap <- function(ds) {
+  if(is.null(ds$hclust)) div("Compute the cluster hierarchy first.")
+  else shinyDendroOutput('dsClustShinyDendro', width='100%', height='40em')
 }
 
 diffsomRenderClusterHeat <- function(ds) {
@@ -676,7 +683,9 @@ serveDiffsom <- function(ws, ds, input, output, session) {
 
   output$uiDsClusterHeat <- renderUI(diffsomRenderClusterHeat(ds))
 
-  output$dsClustDendro <- renderShinyDendro({
+  output$uiDsClustDendroWrap <- renderUI(diffsomRenderClustDendroWrap(ds))
+
+  output$dsClustShinyDendro <- renderShinyDendro({
     if(!is.null(ds$hclust)) {
       colors <- getHeatmapColors(ds, input$dsClusterHeat)
       if(!is.null(input$dsBrushClustEmbed)) {
@@ -695,7 +704,7 @@ serveDiffsom <- function(ws, ds, input, output, session) {
         ds$hclust$merge,
         ds$hclust$order,
         heatmap=colors,
-        assignment=if(is.null(isolate(ds$clust))) NULL else unsetClustNAs(isolate(ds$clust))
+        assignment=isolate(if(is.null(ds$clust)) NULL else unsetClustNAs(ds$clust))
       )
     } else NULL
   })

@@ -35,11 +35,11 @@ TRANSFORM_LIST <- list(
   biexp=list(
     name="Biexponential",
     renderParams=function() div(
-      sliderInput('dsTransBiexW', 'Center (W)', value=0, step=1),
-      sliderInput('dsTransBiexA', 'Positive scale (A)', value=0.5, step=0.1, min=0),
-      sliderInput('dsTransBiexB', 'Positive compresion (B)', value=1, step=0.1, min=0),
-      sliderInput('dsTransBiexC', 'Negative scale (C)', value=0.5, step=0.1, min=0),
-      sliderInput('dsTransBiexD', 'Negative compresion (D)', value=1, step=0.1, min=0)
+      numericInput('dsTransBiexW', 'Center (W)', value=0, step=1),
+      sliderInput('dsTransBiexA', 'Positive scale (A)', value=0.5, step=0.1, min=0, max=20),
+      sliderInput('dsTransBiexB', 'Positive compresion (B)', value=1, step=0.1, min=0, max=20),
+      sliderInput('dsTransBiexC', 'Negative scale (C)', value=0.5, step=0.1, min=0, max=20),
+      sliderInput('dsTransBiexD', 'Negative compresion (D)', value=1, step=0.1, min=0, max=20)
     ),
     check=function(d,input) TRUE,
     trans=function(d,input)
