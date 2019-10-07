@@ -390,9 +390,56 @@ diffsomRenderClusterEmbedding <- function(ds) {
 
 diffsomRenderAnalysis <- function(ds) {
   tabsetPanel(type='tabs',
-    tabPanel('Files heatmap', uiOutput('diffsomAnalysisHeatmap')),
+    tabPanel('Cluster expressions', uiOutput('diffsomAnalysisExprs')),
+    tabPanel('Cluster size heatmap', uiOutput('diffsomAnalysisHeatmap')),
     tabPanel('Compare files', uiOutput('diffsomAnalysisDiff')),
     tabPanel('Significance plots', uiOutput('diffsomAnalysisSignificance'))
+  )
+}
+
+diffsomRenderAExprs <- function(ds) {
+  if(is.null(ds$clust)||is.null(ds$annotation)) return(div("Cluster and annotate the cells first."))
+  clust <- levels(factor(ds$clust))
+  names(clust) <- ds$annotation[clust]
+  clust <- clust[!is.na(clust)]
+  fluidRow(
+    column(3,
+      tooltip("Heatmap shows relative amount of population cells in the files. The data is converted to percentages for each file, then normalized again for populations to allow comparison.",
+      h2("Expressions in clusters")),
+      tooltip("Selected files will be visually separated from the rest",
+      pickerInput('dsAExprsFiles',
+        "Highlight files",
+        choices=ds$files,
+        multiple=T
+      )),
+      tooltip("Marker expressions to examine",
+      pickerInput('dsAExprsMarkers',
+        "Markers",
+        choices=ds$prettyColnames,
+        multiple=T
+      )),
+      tooltip("Annotated populations whose content will be used to create the plot",
+      pickerInput('dsAExprsClusters',
+        "Populations",
+        choices=clust,
+        multiple=T
+      ))
+    ),
+    column(9,
+      uiOutput('uiDsAExprs')
+    )
+  )
+}
+
+diffsomRenderAExprsPlot <- function(ds, input) {
+  if(is.null(input$dsAExprsClusters) ||
+    is.null(input$dsAExprsMarkers) ||
+    length(input$dsAExprsClusters)==0 ||
+    length(input$dsAExprsMarkers)==0)
+    div("Select markers and clusters first")
+  else plotOutput('plotDsAExprs',
+    width=paste0(20*length(input$dsAExprsMarkers), 'em'),
+    height=paste0(max(15, 2*length(ds$files))*length(input$dsAExprsClusters), 'em')
   )
 }
 
@@ -756,21 +803,42 @@ serveDiffsom <- function(ws, ds, input, output, session) {
   # Analysis tab
   #
 
-  output$diffsomAnalysis <- renderUI({
+  output$diffsomAnalysis <- renderUI(
     diffsomRenderAnalysis(ds)
-  })
+  )
 
-  output$diffsomAnalysisHeatmap <- renderUI({
+  output$diffsomAnalysisExprs <- renderUI(
+    diffsomRenderAExprs(ds)
+  )
+
+  output$diffsomAnalysisHeatmap <- renderUI(
     diffsomRenderAHeat(ds)
-  })
+  )
 
-  output$diffsomAnalysisDiff <- renderUI({
+  output$diffsomAnalysisDiff <- renderUI(
     diffsomRenderADiff(ds)
-  })
+  )
 
-  output$diffsomAnalysisSignificance <- renderUI({
+  output$diffsomAnalysisSignificance <- renderUI(
     diffsomRenderASignificance(ds)
-  })
+  )
+
+  output$uiDsAExprs <- renderUI(
+    diffsomRenderAExprsPlot(ds, input)
+  )
+
+  output$plotDsAExprs <- renderPlot(
+    plotDsAExprs(
+      ds$files,
+      input$dsAExprsFiles,
+      ds$cellFile,
+      input$dsAExprsClusters,
+      ds$clust[ds$map$mapping[,1]],
+      ds$annotation,
+      input$dsAExprsMarkers,
+      ds$data[,findColIds(input$dsAExprsMarkers, ds$prettyColnames),drop=F]
+    )
+  )
 
   output$plotDsAHeat <- renderPlot(
     if(!is.null(ds$clust) && length(levels(factor(ds$clust)))>0) {

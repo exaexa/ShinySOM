@@ -62,7 +62,7 @@ plotOverviewHist <- function(d, vertical) {
     plot(
       if(vertical) dens$y else dens$x,
       if(vertical) dens$x else dens$y,
-      type='l', frame.plot=F, xlab='', ylab='',
+      type='n', frame.plot=F, xlab='', ylab='',
       xlim=if(vertical) c(max(dens$y), 0) else dlim,
       ylim=if(vertical) dlim else c(0, max(dens$y)))
 
@@ -71,7 +71,8 @@ plotOverviewHist <- function(d, vertical) {
     polygon(
       if(vertical) py else px,
       if(vertical) px else py,
-      col=rgb(.8,.8,.8), border='black')
+      col=rgb(.9,.9,.9),
+      border=rgb(.75,.75,.75), lwd=2)
 }
 
 plotOverview <- function(ds, data, markersH, markersV, markerColor, cex, alpha) {
