@@ -246,8 +246,11 @@ diffsomRenderImportances <- function(colsToUse, orig) {
 diffsomGatherImportances <- function(input, colsToUse) {
   n <- length(colsToUse)
   res <- rep(1, n)
-  for(i in seq_len(n))
-    res[i] <- input[[paste0('dsImportance', i)]]
+  for(i in seq_len(n)) {
+    tmp <- input[[paste0('dsImportance', i)]]
+    if(is.null(tmp)) tmp<-1
+    res[i] <- tmp
+  }
   names(res) <- colsToUse
   res
 }
