@@ -745,7 +745,7 @@ serveDiffsom <- function(ws, ds, input, output, session) {
           tf=ds$e[,1]>=b$xmin & ds$e[,1]<=b$xmax &
              ds$e[,2]>=b$ymin & ds$e[,2]<=b$ymax
         ))
-        br <- rep(0, length(ds$clust))
+        br <- rep(0, length(isolate(ds$clust)))
         br[as.numeric(rownames(st))] <- st[,'TRUE']/apply(st,1,function(v) max(sum(v), 1))
         colors <- cbind(colors, Brush=EmbedSOM::ExpressionPalette(100)[1+as.integer(99*br)])
       }
