@@ -336,6 +336,7 @@ diffsomRenderClustering <- function(ds) {
       tooltip("Dendrograms are usually created instantly; except for Mahalanobis-based clustering which takes several seconds.",
       actionButton("dsClusterDoCluster", label="Create hierarchy")),
       uiOutput("uiDsClusterHeat"),
+      tooltip("Assign human-readable names for each cluster you create. These will be used in later analysis and dissection.", h3('Cluster names')),
       uiOutput("uiDsClusterAnnotation")
     ),
     column(4,

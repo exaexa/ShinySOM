@@ -28,7 +28,8 @@ annotationRender <- function(ds) {
     )
   div(
     res,
-    actionButton('dsClustAnnotationDoSave', "Save annotations")
+    tooltip("This adds the cluster names to dataset. The result should be observable in the plot on the right.",
+    actionButton('dsClustAnnotationDoSave', "Save annotations"))
   )
 }
 
