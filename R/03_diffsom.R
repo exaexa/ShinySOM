@@ -298,16 +298,23 @@ diffsomRenderEmbedSOMView <- function(ds) {
 diffsomRenderEmbedEView <- function(ds) {
   if(is.null(ds$e)) p("Compute the embedding first")
   else div(
-    tooltip("The expression of the selected marker or data column will be shown in the embedding below.",
-    pickerInput('dsEmbedEViewCol', "Column",
-      choices=c('(show density)', unname(ds$prettyColnames)),
-      options=list(size=10),
-      multiple=F,
-      selected='(show density)'
-      )),
-    plotOutput("plotDsEmbedEExpr", width='56em', height='56em'),
-    sliderPointSize('dsEmbedEExprCex'),
-    sliderAlpha('dsEmbedEExprAlpha')
+    fluidRow(
+      column(6,
+        tooltip("The expression of the selected marker or data column will be shown in the embedding below.",
+        pickerInput('dsEmbedEViewCol', "Column",
+          choices=c('(show density)', unname(ds$prettyColnames)),
+          options=list(size=10),
+          multiple=F,
+          selected='(show density)'
+          )
+        )
+      ),
+      column(6,
+        sliderPointSize('dsEmbedEExprCex'),
+        sliderAlpha('dsEmbedEExprAlpha')
+      )
+    ),
+    plotOutput("plotDsEmbedEExpr", width='56em', height='56em')
   )
 }
 
