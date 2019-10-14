@@ -1,5 +1,11 @@
 
 ui <- fluidPage(
+  tags$head(tags$script(HTML("
+    window.onbeforeunload = function() {
+        return 'Are you sure you want to quit? All unsaved changes will be lost!';
+    };")),
+    tags$title("ShinySOM")
+  ),
   fluidRow(
     column(3, div(
       img(src=paste0('data:image/png;base64,', logoImgSrc),
