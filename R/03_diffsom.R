@@ -764,7 +764,10 @@ serveDiffsom <- function(ws, ds, input, output, session) {
         ds$hclust$merge,
         ds$hclust$order,
         heatmap=colors,
-        assignment=isolate(if(is.null(ds$clust)) NULL else unsetClustNAs(ds$clust))
+        assignment=isolate(if(is.null(ds$clust)) NULL else unsetClustNAs(ds$clust)),
+        fontFg='black',
+        fontShadow='white',
+        fontScale=0.6
       )
     } else NULL
   })
