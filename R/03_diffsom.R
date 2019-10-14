@@ -742,8 +742,10 @@ serveDiffsom <- function(ws, ds, input, output, session) {
         b <- input$dsBrushClustEmbed
         st <- table(data.frame(
           som=ds$map$mapping[,1],
-          tf=ds$e[,1]>=b$xmin & ds$e[,1]<=b$xmax &
-             ds$e[,2]>=b$ymin & ds$e[,2]<=b$ymax
+          tf=factor(levels=c(T,F),
+              ds$e[,1]>=b$xmin & ds$e[,1]<=b$xmax &
+              ds$e[,2]>=b$ymin & ds$e[,2]<=b$ymax
+            )
         ))
         br <- rep(0, length(isolate(ds$clust)))
         br[as.numeric(rownames(st))] <- st[,'TRUE']/apply(st,1,function(v) max(sum(v), 1))
