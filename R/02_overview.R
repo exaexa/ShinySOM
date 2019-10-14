@@ -4,7 +4,6 @@ overviewPlotHistMargin <- 0.3
 gatherOverviewPlotDim <- function(ds, data, id) {
 
   addScatter <- function(x) (x + rnorm(length(x), sd=0.1))
-  set.seed(42) #this is ugly, but avoids jitter on irrelevant changes (e.g. plot alpha)
 
   if(id=='(File)')
     addScatter(ds$cellFile)
@@ -77,6 +76,8 @@ plotOverviewHist <- function(d, vertical) {
 }
 
 plotOverview <- function(ds, data, markersH, markersV, markerColor, cex, alpha) {
+  set.seed(42) #this is ugly, but avoids jitter on irrelevant changes (e.g. plot alpha)
+
   par(xaxt='n', yaxt='n')
   nh <- length(markersH)
   sh <- nh+overviewPlotHistMargin
