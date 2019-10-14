@@ -385,7 +385,17 @@ diffsomRenderClusterEmbedding <- function(ds) {
             choices=c('(cluster)', unname(ds$prettyColnames)),
             multiple=F,
             selected='(cluster)'),
-        uiOutput("uiDsClustReorder")
+        uiOutput("uiDsClustReorder"),
+        selectInput('dsClustEmbedX',
+          'Horizontal axis',
+          choices=c('(Embedding X)', '(Embedding Y)', unname(ds$prettyColnames)),
+          multiple=F,
+          selected='(Embedding X)'),
+        selectInput('dsClustEmbedY',
+          'Vertical axis',
+          choices=c('(Embedding X)', '(Embedding Y)', unname(ds$prettyColnames)),
+          multiple=F,
+          selected='(Embedding Y)')
       ),
       column(6,
         sliderPointSize('dsClustEmbedCex'),
@@ -749,11 +759,13 @@ serveDiffsom <- function(ws, ds, input, output, session) {
       colors <- getHeatmapColors(ds, input$dsClusterHeat)
       if(!is.null(input$dsBrushClustEmbed)) {
         b <- input$dsBrushClustEmbed
+        dx <- getClustEmbedData(ds$e, ds$data, ds$prettyColnames, input$dsClustEmbedX)
+        dy <- getClustEmbedData(ds$e, ds$data, ds$prettyColnames, input$dsClustEmbedY)
         st <- table(data.frame(
           som=ds$map$mapping[,1],
           tf=factor(levels=c(T,F),
-              ds$e[,1]>=b$xmin & ds$e[,1]<=b$xmax &
-              ds$e[,2]>=b$ymin & ds$e[,2]<=b$ymax
+              dx>=b$xmin & dx<=b$xmax &
+              dy>=b$ymin & dy<=b$ymax
             )
         ))
         br <- rep(0, length(isolate(ds$clust)))
@@ -790,6 +802,8 @@ serveDiffsom <- function(ws, ds, input, output, session) {
       ds$data,
       ds$prettyColnames,
       input$dsClustEmbedColor,
+      input$dsClustEmbedX,
+      input$dsClustEmbedY,
       input$dsClustEmbedCex,
       input$dsClustEmbedAlpha)
   })
