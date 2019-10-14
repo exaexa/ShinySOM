@@ -12,7 +12,7 @@ ui <- fluidPage(
 )
 
 datasetNameValid <- function(name) {
-  ((regexpr(text=name, pattern='^[a-zA-Z0-9 ,._@#%^&()-]*$')==1) && (nchar(name)>2))
+  ((regexpr(text=name, pattern='^[a-zA-Z0-9 ,._@#%^&()-]*$')==1) && (nchar(name)>0))
 }
 
 datasetExists <- function(workspace, name) {
