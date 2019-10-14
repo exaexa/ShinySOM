@@ -57,6 +57,8 @@ plotOverviewDimsWithColor <- function(d, clr, cex, alpha) {
 plotOverviewHist <- function(d, vertical) {
     d <- d[!is.na(d)]
     dlim <- c(min(d),max(d))
+    if(dlim[1]==dlim[2])
+      dlim <- dlim+c(-1,+1)
     bw <- 0.05 * (dlim[2]-dlim[1])
     dens <- density(d, from=dlim[1], to=dlim[2], width=bw)
     plot(

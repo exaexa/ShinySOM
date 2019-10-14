@@ -12,7 +12,12 @@ plotDsAExprs <- function(files, hlFiles, cellFile,
     
     clid <- findColIds(cl, levels(fclust))
     
-    dlim <- c(min(d[,m]), max(d[,m]))
+    if(length(d[,m])>0)
+      dlim <- c(min(d[,m]), max(d[,m]))
+    else dlim <- c(0,1)
+    if(dlim[1]==dlim[2])
+      dlim <- dlim+c(-1,+1)
+
     bw <- 0.05*(dlim[2]-dlim[1])
 
     plot(0,0,
