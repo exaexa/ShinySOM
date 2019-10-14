@@ -30,10 +30,16 @@ plotDsAExprs <- function(files, hlFiles, cellFile,
     for(i in seq_len(length(files))) {
       flt <- (cellFile==i)&(clust==cl)
       flt[is.na(flt)] <- F
-      dens <- density(d[flt,m], from=dlim[1], to=dlim[2], width=bw)
-      px<-c(dlim[1], dens$x, dlim[2])
-      py<-c(0, dens$y, 0)
-      if(max(dens$y)>0) py <- .9*py/max(dens$y)
+      dens <- d[flt,m]
+      if(length(dens)>=1) {
+        dens <- density(dens, from=dlim[1], to=dlim[2], width=bw)
+        px<-c(dlim[1], dens$x, dlim[2])
+        py<-c(0, dens$y, 0)
+        if(max(dens$y)>0) py <- .9*py/max(dens$y)
+      } else {
+        px<-c(dlim[1], dlim[2])
+        py<-c(0,0)
+      }
       polygon(px, py+length(files)-i,
         col=adjustcolor(ccols[clid], alpha=if(files[i]%in%hlFiles) .75 else .1),
         border=ccols[clid],
