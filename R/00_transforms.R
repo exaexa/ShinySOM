@@ -53,11 +53,17 @@ TRANSFORM_LIST <- list(
   log=list(
     name="Logarithm+P",
     renderParams=function()
-      numericInput('dsTransPLogP', "P", value=0, step=0.01),
-    check=function(d, input)
-      if(any(d <= -input$dsTransPLogP))
-        stop("P is too low to remove negative values"),
-    trans=function(d, input) log(d+input$dsTransPLogP)
+      div(
+        numericInput('dsTransPLogP', "P", value=0, step=0.01),
+        numericInput('dsTransPLogC', "Negative clamp (logscale)", value=1, step=0.1)
+      ),
+    check=function(d, input) TRUE,
+    trans=function(d, input) {
+      v <- d+input$dsTransPLogP
+      threshold <- exp(-input$dsTransPLogC)
+      v[v<threshold] <- threshold
+      log(v)
+    }
   ),
   `2log`=list(
     name="2-sided logarithm",
