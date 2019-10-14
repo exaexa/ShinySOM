@@ -2,17 +2,17 @@
 TRANSFORM_LIST <- list(
   none=list(
     name="No transformation",
-    renderParams=function() div(),
+    renderParams=function(input) div(),
     check=function(d, input) TRUE,
     trans=function(d, input) d
   ),
   logicle=list(
     name="Logicle",
-    renderParams=function() div(
-        sliderInput('dsTransLogicleW', "W (linearization width)", value=.5, step=0.05, min=0, max=1),
-        sliderInput('dsTransLogicleT', "log(t) (data bit width)", value=18, step=0.5, min=0.5, max=32),
-        sliderInput('dsTransLogicleM', "M (output range)", value=4.5, step=0.1, min=0.1, max=10),
-        sliderInput('dsTransLogicleA', "A (additional negative range)", value=0, step=0.1, min=0, max=1.5)
+    renderParams=function(input) div(
+      sliderInput('dsTransLogicleW', "W (linearization width)", value=persistentP(input, 'dsTransLogicleW', .5), step=0.05, min=0, max=1),
+      sliderInput('dsTransLogicleT', "log(t) (data bit width)", value=persistentP(input, 'dsTransLogicleT', 18), step=0.5, min=0.5, max=32),
+      sliderInput('dsTransLogicleM', "M (output range)", value=persistentP(input, 'dsTransLogicleM', 4.5), step=0.1, min=0.1, max=10),
+      sliderInput('dsTransLogicleA', "A (additional negative range)", value=persistentP(input, 'dsTransLogicleA', 0), step=0.1, min=0, max=1.5)
     ),
     check=function(d, input) TRUE,
     trans=function(d, input)
@@ -24,22 +24,21 @@ TRANSFORM_LIST <- list(
   ),
   asinh=list(
     name="Hyperbolic arcSin",
-    renderParams=function()
-      div(
-        sliderInput('dsTransPAsinhCq', "Center (quantile)", value=0.05, step=0.01, min=0, max=1),
-        sliderInput('dsTransPAsinhS', "log-scale", value=0, step=.5, min=-20, max=20)
-      ),
+    renderParams=function(input) div(
+      sliderInput('dsTransPAsinhCq', "Center (quantile)", value=persistentP(input, 'dsTransPAsinhCq', 0.05), step=0.01, min=0, max=1),
+      sliderInput('dsTransPAsinhS', "log-scale", value=persistentP(input, 'dsTransPAsinhS', 0), step=.5, min=-20, max=20)
+    ),
     check=function(d, input) TRUE,
     trans=function(d, input) asinh((d-quantile(d, input$dsTransPAsinhCq))*exp(input$dsTransPAsinhS))
   ),
   biexp=list(
     name="Biexponential",
-    renderParams=function() div(
-      numericInput('dsTransBiexW', 'Center (W)', value=0, step=1),
-      sliderInput('dsTransBiexA', 'Positive scale (A)', value=0.5, step=0.1, min=0, max=20),
-      sliderInput('dsTransBiexB', 'Positive compresion (B)', value=1, step=0.1, min=0, max=20),
-      sliderInput('dsTransBiexC', 'Negative scale (C)', value=0.5, step=0.1, min=0, max=20),
-      sliderInput('dsTransBiexD', 'Negative compresion (D)', value=1, step=0.1, min=0, max=20)
+    renderParams=function(input) div(
+      numericInput('dsTransBiexW', 'Center (W)', value=persistentP(input, 'dsTransBiexW', 0), step=1),
+      sliderInput('dsTransBiexA', 'Positive scale (A)', value=persistentP(input, 'dsTransBiexA', 0.5), step=0.1, min=0, max=20),
+      sliderInput('dsTransBiexB', 'Positive compresion (B)', value=persistentP(input, 'dsTransBiexB', 1), step=0.1, min=0, max=20),
+      sliderInput('dsTransBiexC', 'Negative scale (C)', value=persistentP(input, 'dsTransBiexC', 0.5), step=0.1, min=0, max=20),
+      sliderInput('dsTransBiexD', 'Negative compresion (D)', value=persistentP(input, 'dsTransBiexD', 1), step=0.1, min=0, max=20)
     ),
     check=function(d,input) TRUE,
     trans=function(d,input)
@@ -52,11 +51,10 @@ TRANSFORM_LIST <- list(
   ),
   log=list(
     name="Logarithm+P",
-    renderParams=function()
-      div(
-        numericInput('dsTransPLogP', "P", value=0, step=0.01),
-        numericInput('dsTransPLogC', "Negative clamp (logscale)", value=1, step=0.1)
-      ),
+    renderParams=function(input) div(
+      numericInput('dsTransPLogP', "P", value=persistentP(input, 'dsTransPLogP', 0), step=0.01),
+      numericInput('dsTransPLogC', "Negative clamp (logscale)", value=persistentP(input, 'dsTransPLogC', 1), step=0.1)
+    ),
     check=function(d, input) TRUE,
     trans=function(d, input) {
       v <- d+input$dsTransPLogP
@@ -67,11 +65,10 @@ TRANSFORM_LIST <- list(
   ),
   `2log`=list(
     name="2-sided logarithm",
-    renderParams=function()
-      div(
-        sliderInput('dsTransP2LogCq', "Center (quantile)", value=0.05, step=0.01, min=0, max=1),
-        sliderInput('dsTransP2LogS', "Log-scale", value=0, step=1, min=-20, max=20)
-      ),
+    renderParams=function(input) div(
+      sliderInput('dsTransP2LogCq', "Center (quantile)", value=persistentP(input, 'dsTransP2LogCq', 0.05), step=0.01, min=0, max=1),
+      sliderInput('dsTransP2LogS', "Log-scale", value=persistentP(input, 'dsTransP2LogS', 0), step=1, min=-20, max=20)
+    ),
     check=function(d, input) TRUE,
     trans=function(d, input) {
       center <- quantile(d, input$dsTransP2LogCq)
@@ -82,10 +79,10 @@ TRANSFORM_LIST <- list(
   ),
   quantile=list(
     name="Quantile",
-    renderParams=function()
+    renderParams=function(input)
       radioButtons('dsTransPQuT', "Output distriution",
         choices=list(`Uniform`='unif', `Normal`='norm', `Exponential`='exp', `Logit`='logit'),
-        selected='unif'
+        selected=persistentP(input, 'dsTransPQuT', 'unif')
       ),
     check=function(d, input) TRUE,
     trans=function(d, input) {
@@ -102,9 +99,9 @@ TRANSFORM_LIST <- list(
   )
 )
 
-renderTransformParams <- function(transType) {
+renderTransformParams <- function(input, transType) {
   if(is.null(TRANSFORM_LIST[[transType]])) p("Could not find the transform")
-  else TRANSFORM_LIST[[transType]]$renderParams()
+  else TRANSFORM_LIST[[transType]]$renderParams(input)
 }
 
 transformDoScale <- function(d) {

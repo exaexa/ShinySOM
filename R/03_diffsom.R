@@ -622,7 +622,7 @@ serveDiffsom <- function(ws, ds, input, output, session) {
     title="Transformed data (preview)", previewTransform=T)
 
   output$diffsomTransformParams <- renderUI(
-    renderTransformParams(input$dsTransTrType)
+    renderTransformParams(input, input$dsTransTrType)
   )
 
   observeEvent(input$dsTransApply, {

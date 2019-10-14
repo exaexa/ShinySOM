@@ -1,4 +1,8 @@
 
+persistentP <- function(input, id, default) {
+  isolate(if(is.null(input[[id]])) default else input[[id]])
+}
+
 findColIds <- function(cols, all) {
   seq_len(length(all))[all %in% cols]
 }
