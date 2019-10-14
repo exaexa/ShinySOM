@@ -5,7 +5,6 @@ renderMenu <- function(ws) {
 
   fluidRow(
     div(style="margin-top:1em;"),
-    ilDiv(actionButton("menuCreate", "\u2730 Manage datasets")),
     ilDiv(actionButton("menuForeign", "\u2b83 Upload/Download data")),
     ilDiv("Dataset: "),
     ilDiv(style='vertical-align: top',
@@ -13,7 +12,8 @@ renderMenu <- function(ws) {
         selected=isolate(ws$page),
         choices=choices)),
     ilDiv(actionButton("menuOpen", "\u2935 Open")),
-    ilDiv(actionButton("menuSave", "\ud83d\udcbe Save current"))
+    ilDiv(actionButton("menuSave", "\ud83d\udcbe Save current")),
+    ilDiv(actionButton("menuCreate", "\u2730 Manage datasets"))
   )
 }
 
