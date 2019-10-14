@@ -806,7 +806,7 @@ serveDiffsom <- function(ws, ds, input, output, session) {
       class(cl) <- 'hclust'
       ds$hclust <- as.hclust(stats::reorder(
         as.dendrogram(cl),
-        ds$map$codes[,findColIds(input$dsClustEmbedColor, ds$colsToUse)],
+        -ds$map$codes[,findColIds(input$dsClustEmbedColor, ds$colsToUse)],
         mean
       ))
     }
