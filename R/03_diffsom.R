@@ -529,7 +529,8 @@ diffsomRenderASignificance <- function(ds) {
         selected='SOM',
         multiple=F)),
       tooltip("P-values obtained from testing are converted to color gradient position as (1-p)^transform. Default value 10 puts the reasonable p-value 0.05 to around half of the color scale. Low values exaggerate the differences, producing colors for even relatively insignificant changes.",
-      sliderInput('dsASigPow', "Significance transform", value=10, min=0.1, max=30)),
+      sliderInput('dsASigPval', "p-value log-threshold", value=3, min=1, max=9, step=.1)),
+      div("(p-value at 50% color: ", ilDiv(uiOutput('uiDsASigPval')), ')'),
       sliderPointSize('dsASigCex'),
       sliderAlpha('dsASigAlpha')
     ),
@@ -900,10 +901,12 @@ serveDiffsom <- function(ws, ds, input, output, session) {
         input$dsASigExperiment,
         ds$files, ds$cellFile, ds$e,
         input$dsASigGran, ds$map$mapping[,1], ds$clust, ds$annotation,
-        input$dsASigPow,
+        input$dsASigPval,
         input$dsASigCex,
         input$dsASigAlpha)
   })
+
+  output$uiDsASigPval <- renderUI(format(exp(-(input$dsASigPval)), digits=5))
 
   #
   # Gating tab

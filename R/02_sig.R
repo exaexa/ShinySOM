@@ -1,9 +1,12 @@
 
 plotDsASig <- function(control, experiment, files, cellFile, e,
   gran, mapping, clust, annotation,
-  pow, cex, alpha)
+  ptrans, cex, alpha)
 {
   cl <- 1
+
+  pow <- 1/log(1-exp(-ptrans), base=.5)
+
   if(gran=='SOM') cl <- mapping
   else if(gran=='Clusters') cl <- clust[mapping]
 
