@@ -18,15 +18,15 @@ CLUSTER_METHODS=list(
   `Mahalanobis/Average`=function(codes, data, mapping) withProgress(
     message="Clustering...",
     value=1, min=1, max=3, {
-      cl <- mhca::mhclust(
+      cl <- mhclust(
         x = data,
         g = mapping,
         quick = T,
         gIntra = F)
       setProgress("Fixing monotonicity...", value=2)
-      cl <- mhca::fixNonMonotHca(cl)
+      cl <- fixNonMonotHca(cl)
       setProgress("Converting to SOM clusters...", value=3)
-      cl <- mhca::cutreeApriori(cl)
+      cl <- cutreeApriori(cl)
       list(height=cl$height, merge=cl$merge, order=cl$order)
     }
   )
