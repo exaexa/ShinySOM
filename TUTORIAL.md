@@ -59,11 +59,26 @@ Open datasets can be explored in the usual 2-dimensional scatterplots; these are
 
 The screenshot shows a combination of forward and side scatter plots, colored by side-scatter signal width. (This clearly identifies e.g. the doublet clusters.)
 
-We note that all expression colors in ShinySOM are plotted using the relatively standard ColorBrewer's **RdYlBu** palette, where blue shades mean "negative", gray-yellow "mean" and red shades "positive" expression. The color scaling is based on the virtual normal distribution, which produces a good result in a wide spectrum of use-cases. See [EmbedSOM source code](https://github.com/exaexa/EmbedSOM/blob/master/R/utils.R) for details.
+We note that all expression colors in ShinySOM are plotted using the relatively standard ColorBrewer's **RdYlBu** palette, where blue shades represent "negative", gray-yellow "average" and red shades "positive" expression of the marker. The color scaling is based on the virtual normal distribution, which produces good results in a wide spectrum of use-cases. See [EmbedSOM source code](https://github.com/exaexa/EmbedSOM/blob/master/R/utils.R) for details.
 
-Among other, the plot with CD11b marker shows that the data still need to be transformed.
+Among other, the plot with CD11b marker clearly shows that the data still need to be transformed, which is the next step in the workflow.
 
 ## Transforming the data
+
+Transformation editor is available under the tab **Transform&Scale**. Individual data dimensions (ie. cell parameters) can be selected and subjected to some of the common transformation methods:
+
+![transform](media/tutorial-transform.png?raw=true)
+
+In the screenshot, we have
+
+1. selected all fluorescent markers for transformation,
+2. chosen the logicle transformation (which is a good default for fluorescence-based flow cytometry)
+3. selected two markers from the dataset for verifying the result of the transformation (here we use CD3 vs. CD19, which should produce relatively well separated clusters of T and B-cells)
+4. increased the W parameter to avoid spreading of the negative population.
+
+Finally, the **Apply** button is pressed (see 5 in the screenshot) to save the transformation in the dataset.
+
+Other transforms can be applied as well, e.g. the ArcSinh transform is viable for mass-cytometry samles.
 
 ## Identifying the populations
 
