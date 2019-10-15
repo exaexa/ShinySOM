@@ -82,12 +82,76 @@ Other transforms can be applied as well, e.g. the ArcSinh transform is viable fo
 
 ## Identifying the populations
 
+Population identification (or "gating") is carried out in two steps, using FlowSOM to train a self-organizing map of the data, and then clustering on the resulting map. Additionally, ShinySOM uses the EmbedSOM view to show a quickly apprehensible 2-dimensional "guiding" picture for the dataset.
+
+Here, we will first focus on "cleaning", i.e. removing the doublets, cell debris, dead cells and various other events, in order to create a dataset with only live lymphocyte singlets. (We will further dissect the individual cell types later.)
+
 ### Clustering and embedding
+
+SOM training and embedding is done in the **Embedding** tab, as shown on the screenshot:
+
+![embedding](media/tutorial-embed.png?raw=true)
+
+The performed actions are as follows:
+
+1. We have chosen a subset of the cell parameters that will be used in this step of dissection. To improve the cleaning, we have selected only the forward and side scatters, and the L/D marker (total 7 markers). Other parameters of the SOM may be selected -- e.g. size can be slightly increased to improve clustering resolution, various cell parameters can be assigned additional importance, and SOM training space metrics may be changed. Default values should work well in most usecases.
+2. SOM training is executed by clicking the **Compute SOM** button. On the default SOM size, the training takes around 10 seconds; after that the resulting SOM is displayed in the plot on the right. SOM training process is randomized and the SOM generated on another computer will probably differ, but the count and relative positions of the identified clusters should stay roughly same.
+3. The contents of the SOM plot can be colored by choosing different cell parameters. For example, choosing the L/D marker allows seeing a clearly defined cluster of dead cells in the upper part of the plot.
+4. A better EmbedSOM-based view is obtained by clicking the **Compute embedding** button.
+5. The resulting embedded cells can be observed in the lower right. Again, different markers may be highlighted in the picture -- for example, highlighted FSC-W allows seeing the embedded doublet population.
+
+(Alternatively, we could have chosen to cluster the populations using all available markers at once. Although that would work correctly (and the detailed cell populations would be identifiable right away), for the purpose of this tutorial we split the dissection into 2 separate steps, in order to demonstrate the functionality of creating cell subsets.)
 
 ### iDendro-style dissection
 
-## Simple analysis
+Cell population are selected in a dendrogram that is built upon the FlowSOM clustering. This allows quick identification of large datasets of interest, and provides a relatively effortless way for separating the data in multiple dimensions at once. Additionally, gating bias is reduced, since the dendrogram is precomputed to separate the populations well in the multidimensional space, and diverging from it requires additional user effort.
 
-## Subset datasets
+The populations are selected in a [shinyDendro](https://github.com/exaexa/shinyDendro)-based interface:
+![creating a subset dataset](media/tutorial-cluster.png?raw=true)
+
+1. First, in the **Clustering** tab, we create a dendrogram structure using a selected hierarchical clustering algorithm.
+2. The populations are selected in the dendrogram as such: First, a keyboard button (any of `a` to `z` and `0` to `9`) chooses the cluster color ("key"); clicking in the dendrogram causes the whole branch of the tree to be painted by the chosen color. This choice is immediately visible in the embedding on the right. Additionally, the embedding plot can be used for brushing -- drawing a rectangle around cells in the view highlights the selected cells in the dendrogram.
+3. Markers used for embedding may be displayed next to the dendrogram as a heatmap, to aid cluster identification.
+4. The embedding view can be quickly colored by any marker expression or converted to display the usual 2-dimensional dotplot (with the same possibility of brushing).
+5. After the desired populations are selected, we can assign them interpretable names and save them. That makes the named populations available to the final parts of the workflow (mainly analysis and subset dissection).
+6. The clustered cells may be immediately observed in a more complicated scatterplot structure, using the same interface as in Overview.
+
+## Create a dataset subset
+
+For demonstration, we will extract the identified lymphocytes and save them in a separate dataset using the **Dissection** tab:
+
+![creating a subset dataset](media/tutorial-dissect.png?raw=true)
+
+The "Spleen-clean" dataset will appear in the top bar, next to the original "Spleen" dataset.
+
+## Working with the extracted subset
+
+After reducing the dataset, we have embedded and dissected it again, to get a complete view of live lymphocyte subpopulations:
+
+![creating a subset dataset](media/tutorial-cluster2.png?raw=true)
+
+As the main changes from the processing of the original dataset, it was _not_ necessary to transform the dataset again (it stays transformed from the previous step), and we have avoided to use the scatter and L/D cell parameters for the embedding.
+
+The screenshot shows dissection of the populations into B cells (brushed), T cells, and some other cell types.
+
+Notably, as the data is clean from debris, statistical analysis of its content can be performed quickly.
+
+## Simple analyses
+
+ShinySOM offers several useful analyses for getting a good overview of the contents of the selected populations and their differences in individual files. These are available as sub-tabs in the **Analysis** tab:
+
+- Tab **Cluster expressions** allows quick visual comparison of expression of markers in files and clusters. This is useful e.g. for monitoring various activation-related markers (various cytokines) in samples with different stimulation.
+![Cluster expressions](media/tutorial-clustexpr.png?raw=true)
+- Tab **Cluster size heatmap** provides a visual representation of relative cluster cell count in different files (the R-originated heatmap additionally attempts to group the clusters and files by relative similarity and draws a dendrogram to express it). The data is normalized by columns to show changes in cluster contents well. Precise cell counts for each cluster and file can be exported in a CSV file using the **Export data** tab.
+![Clusters vs. files heatmap](media/tutorial-heatmap.png?raw=true)
+- Tab **Compare files** allows seeing the difference between two different file groups in the embedding, giving a quick visual comparison of presence of various cell populations.
+- Tab **Significance plots** improves this view by precisely expressing the significance of the cluster size difference by coloring based on statistical testing results. P-values from testing the cluster sizes from "control" and "experiment" group for one-sided inequality are used as a basis the coloring. Using the significance plots, it is easy to detect even small (but statistically significant) differences in size of the populations.
+![Significance plots](media/tutorial-sig.png?raw=true)
 
 ## Data export
+
+Tab **Export data** provides a way to export the generated data for external programs:
+
+- The whole dataset can be exported as FCS or CSV file, which allows post-processing in various other cytometry-related tools.
+- SOM, clustering and other values can be exported for R in a RDS file, in order to be used with FlowSOM, EmbedSOM, or various pretty-plotting packages such as ggplot.
+- Cell count in populations (which is the usual outcome of many analyses) can be exported directly as a CSV file.
