@@ -140,12 +140,12 @@ Notably, as the data is clean from debris, statistical analysis of its content c
 
 ShinySOM offers several useful analyses for getting a good overview of the contents of the selected populations and their differences in individual files. These are available as sub-tabs in the **Analysis** tab:
 
-- Tab **Cluster expressions** allows quick visual comparison of expression of markers in files and clusters. This is useful e.g. for monitoring various activation-related markers (various cytokines) in samples with different stimulation.
+- Tab **Cluster expressions** allows quick visual comparison of expression of markers in files and clusters. This is useful e.g. for monitoring various activation-related markers (various cytokines) in samples with different stimulation. Unfortunately, the dataset we chose does not contain a viable marker for this analysis; but the view can still be used at least for verifying marker expression strength in different files:
 ![Cluster expressions](media/tutorial-clustexpr.png?raw=true)
 - Tab **Cluster size heatmap** provides a visual representation of relative cluster cell count in different files (the R-originated heatmap additionally attempts to group the clusters and files by relative similarity and draws a dendrogram to express it). The data is normalized by columns to show changes in cluster contents well. Precise cell counts for each cluster and file can be exported in a CSV file using the **Export data** tab.
 ![Clusters vs. files heatmap](media/tutorial-heatmap.png?raw=true)
 - Tab **Compare files** allows seeing the difference between two different file groups in the embedding, giving a quick visual comparison of presence of various cell populations.
-- Tab **Significance plots** improves this view by precisely expressing the significance of the cluster size difference by coloring based on statistical testing results. P-values from testing the cluster sizes from "control" and "experiment" group for one-sided inequality are used as a basis the coloring. Using the significance plots, it is easy to detect even small (but statistically significant) differences in size of the populations.
+- Tab **Significance plots** improves this view by precisely expressing the significance of the cluster size difference by coloring based on statistical testing results. P-values from testing the cluster sizes from "control" and "experiment" group for one-sided inequality are used as a basis the coloring. Using the significance plots, it is easy to detect even small (but statistically significant) differences in size of the populations. In our example, the significance plot confirms the findings from the heatmap, but since the statistical significance of the difference is relatively low (p-value is around 0.15), the p-value transform slider needs to be adjusted for seeing the colors:
 ![Significance plots](media/tutorial-sig.png?raw=true)
 
 ## Data export
