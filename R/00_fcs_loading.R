@@ -65,7 +65,7 @@ loadFCSAggregate <- function(fileNames, cells, noComp) {
 
   for(i in seq_len(nf)) {
     setProgress('Loading FCS file...', value=i)
-    ff <- flowCore::read.FCS(fileNames[i], truncate_max_range=F)
+    ff <- flowCore::read.FCS(fileNames[i])
 
     ns <- min(nrow(ff), cf)
     cs <- sample(nrow(ff), ns)

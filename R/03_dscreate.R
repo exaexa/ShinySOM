@@ -147,9 +147,9 @@ dsCreateDoLoad <- function(name, fs, subsample, noComp, nCells, colsToLoad, pret
     ds$data <- data$exprs[,colSel]
     ds$prettyColnames <- ds$prettyColnames[colSel]
 
-    # remove possible NaNs and NAs
+    # remove possible NaNs, NAs and other sources of trouble
     setProgress('Cleaning...', value=length(fns)+1)
-    ds$data[is.nan(ds$data)] <- NA
+    ds$data[!is.finite(ds$data)] <- NA
     filter <- apply(!is.na(ds$data), 1, all)
     ds$data <- ds$data[filter,]
     ds$cellFile <- ds$cellFile[filter]
