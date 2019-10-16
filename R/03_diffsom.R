@@ -370,9 +370,12 @@ diffsomRenderClusterHeat <- function(ds) {
 }
 
 diffsomRenderClusterEmbedding <- function(ds) {
-  if(is.null(ds$e))
-    p("Compute the embedding first")
-  else if(is.null(ds$hclust))
+  scatterChoices <- unname(ds$prettyColnames)
+  if(!is.null(ds$e)) scatterChoices <- c('(Embedding X)','(Embedding Y)', scatterChoices)
+  defaultX <- scatterChoices[1]
+  defaultY <- scatterChoices[if(length(scatterChoices>1)) 2 else 1]
+
+  if(is.null(ds$hclust))
     p("Create the clustering first")
   else div(
     plotOutput('plotDsClustEmbed',
@@ -388,14 +391,14 @@ diffsomRenderClusterEmbedding <- function(ds) {
         uiOutput("uiDsClustReorder"),
         selectInput('dsClustEmbedX',
           'Horizontal axis',
-          choices=c('(Embedding X)', '(Embedding Y)', unname(ds$prettyColnames)),
+          choices=scatterChoices,
           multiple=F,
-          selected='(Embedding X)'),
+          selected=defaultX),
         selectInput('dsClustEmbedY',
           'Vertical axis',
-          choices=c('(Embedding X)', '(Embedding Y)', unname(ds$prettyColnames)),
+          choices=scatterChoices,
           multiple=F,
-          selected='(Embedding Y)')
+          selected=defaultY)
       ),
       column(6,
         sliderPointSize('dsClustEmbedCex'),
