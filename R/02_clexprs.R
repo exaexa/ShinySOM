@@ -3,6 +3,8 @@ plotDsAExprs <- function(files, hlFiles, cellFile,
                          clusters, clust, annotation,
                          markers, d) {
 
+  if(length(clusters)==0 || length(markers)==0) return()
+
   par(mar=c(0,1.2,1.5,0), mfrow=c(length(clusters), length(markers)))
 
   fclust <- factor(clust)
