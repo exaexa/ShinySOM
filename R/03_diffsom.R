@@ -541,9 +541,8 @@ diffsomRenderASignificance <- function(ds) {
           if(is.null(ds$clust)) NULL else 'Clusters'),
         selected='SOM',
         multiple=F)),
-      tooltip("P-values obtained from testing are converted to color gradient position as (1-p)^transform. Default value 10 puts the reasonable p-value 0.05 to around half of the color scale. Low values exaggerate the differences, producing colors for even relatively insignificant changes.",
-      sliderInput('dsASigPval', "p-value log-threshold", value=3, min=1, max=9, step=.1)),
-      div("(p-value at 50% color: ", ilDiv(uiOutput('uiDsASigPval')), ')'),
+      tooltip("P-values obtained from testing are converted to color gradient; the selected value is put to around a half of the color scale. High selected p-values exaggerate any difference, producing colors for even relatively insignificant changes.",
+      sliderTextInput('dsASigPval', "P-value at 50% color", selected=0.05, choices=c(0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5), grid=T)),
       sliderPointSize('dsASigCex'),
       sliderAlpha('dsASigAlpha')
     ),
@@ -922,8 +921,6 @@ serveDiffsom <- function(ws, ds, input, output, session) {
         input$dsASigCex,
         input$dsASigAlpha)
   })
-
-  output$uiDsASigPval <- renderUI(format(exp(-(input$dsASigPval)), digits=5))
 
   #
   # Gating tab

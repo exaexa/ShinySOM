@@ -1,11 +1,11 @@
 
 plotDsASig <- function(control, experiment, files, cellFile, e,
   gran, mapping, clust, annotation,
-  ptrans, cex, alpha)
+  pval, cex, alpha)
 {
   cl <- 1
 
-  pow <- 1/log(1-exp(-ptrans), base=.5)
+  pow <- log(pval)/log(.5)
 
   if(gran=='SOM') cl <- mapping
   else if(gran=='Clusters') cl <- clust[mapping]
@@ -25,18 +25,18 @@ plotDsASig <- function(control, experiment, files, cellFile, e,
     probsE[i,] <- pad.zero(tabulate(cl[cellFile==expID[i]]),ncl)/sum(cellFile==expID[i])
 
 
-  p_less <- sapply(1:ncl, function(i)
+  suppressWarnings(p_less <- sapply(1:ncl, function(i)
     (1-wilcox.test(
 			probsE[,i],
 			probsC[,i],
 			alternative='less',
-			paired=F)$p.value)^pow)
-  p_greater <- sapply(1:ncl, function(i)
+			paired=F)$p.value)^pow))
+  suppressWarnings(p_greater <- sapply(1:ncl, function(i)
    (1-wilcox.test(
 			probsE[,i],
 			probsC[,i],
 			alternative='greater',
-			paired=F)$p.value)^pow)
+			paired=F)$p.value)^pow))
 
 	col.inconclusive <- rgb(.75, .75, .75, alpha/2)
 	col.greater <- rgb(1, .5, 0, alpha)
