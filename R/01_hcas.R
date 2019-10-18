@@ -11,8 +11,8 @@ CLUSTER_METHODS=list(
   #will people want median/centroid linkages?
   `Euclidean/Ward.D2`=wrapHClustFunc('euclidean', 'ward.D2'),
   `Manhattan/Ward.D2`=wrapHClustFunc('manhattan', 'ward.D2'),
-  `Euclidean/Complete`=wrapHClustFunc('euclidean', 'complete'),
-  `Manhattan/Complete`=wrapHClustFunc('manhattan', 'complete'),
+  #`Euclidean/Complete`=wrapHClustFunc('euclidean', 'complete'),
+  #`Manhattan/Complete`=wrapHClustFunc('manhattan', 'complete'),
   `Euclidean/Average`=wrapHClustFunc('euclidean', 'average'),
   `Manhattan/Average`=wrapHClustFunc('manhattan', 'average'),
   `Mahalanobis/Average`=function(codes, data, mapping) withProgress(
