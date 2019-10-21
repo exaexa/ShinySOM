@@ -53,7 +53,7 @@ After a short while, the newly created dataset should appear in the list in the 
 
 ## Viewing the dataset contents
 
-Open datasets can be explored in the usual 2-dimensional scatterplots; these are available in the **Data overview** tab. We can choose a set of parameters for horizontal and vertical axes, and a color scheme for the points different from the default density:
+Opened datasets can be explored in the usual 2-dimensional scatterplots; these are available in the **Data overview** tab. We can choose a set of parameters for horizontal and vertical axes, and a color scheme for the points different from the default density:
 
 ![overview](media/tutorial-overview.png?raw=true)
 
@@ -84,7 +84,7 @@ Other transforms can be applied as well, e.g. the ArcSinh transform is viable fo
 
 Population identification (or "gating") is carried out in two steps, using FlowSOM to train a self-organizing map of the data, and then clustering on the resulting map. Additionally, ShinySOM uses the EmbedSOM view to show a quickly apprehensible 2-dimensional "guiding" picture for the dataset.
 
-Here, we will first focus on "cleaning", i.e. removing the doublets, cell debris, dead cells and various other events, in order to create a dataset with only live lymphocyte singlets. (We will further dissect the individual cell types later.)
+Here, we will first focus on "cleaning", i.e. removing the doublets, cell debris, dead cells and various other events, in order to create a dataset with only live singlets. (We will further dissect the individual cell types later.)
 
 ### Clustering and embedding
 
@@ -118,7 +118,7 @@ The populations are selected in a [shinyDendro](https://github.com/exaexa/shinyD
 
 ## Create a dataset subset
 
-For demonstration, we will extract the identified lymphocytes and save them in a separate dataset using the **Dissection** tab:
+For demonstration, we will extract the identified live singlet cells and save them in a separate dataset using the **Dissection** tab:
 
 ![creating a subset dataset](media/tutorial-dissect.png?raw=true)
 
@@ -126,26 +126,26 @@ The "Spleen-clean" dataset will appear in the top bar, next to the original "Spl
 
 ## Working with the extracted subset
 
-After reducing the dataset, we have embedded and dissected it again, to get a complete view of live lymphocyte subpopulations:
+After reducing the dataset, we have embedded and dissected it again, to get a complete view of the subpopulations:
 
 ![creating a subset dataset](media/tutorial-cluster2.png?raw=true)
 
-As the main changes from the processing of the original dataset, it was _not_ necessary to transform the dataset again (it stays transformed from the previous step), and we have avoided to use the scatter and L/D cell parameters for the embedding.
+Compared to the processing of the original dataset, there are two main changes:
+- it was _not_ necessary to transform the dataset again (the data stays transformed from the previous step)
+- we have avoided the use of the scatter and L/D cell parameters for SOM and embedding, and focused only on the lineage markers
 
-The screenshot shows dissection of the populations into B cells (brushed), T cells, and some other cell types.
-
-Notably, as the data is clean from debris, statistical analysis of its content can be performed quickly.
+The screenshot shows dissection of the populations into B cells (brushed), T cells, and several other cell types.
 
 ## Simple analyses
 
 ShinySOM offers several useful analyses for getting a good overview of the contents of the selected populations and their differences in individual files. These are available as sub-tabs in the **Analysis** tab:
 
-- Tab **Cluster expressions** allows quick visual comparison of expression of markers in files and clusters. This is useful e.g. for monitoring various activation-related markers (various cytokines) in samples with different stimulation. Unfortunately, the dataset we chose does not contain a viable marker for this analysis; but the view can still be used at least for verifying marker expression strength in different files:
+- Tab **Cluster expressions** allows quick visual comparison of expression of markers in files and clusters. This is useful e.g. for monitoring various activation-related markers (various cytokines) in samples with different stimulation. Unfortunately, the dataset we chose does not contain a viable marker for this analysis; but the view can still be used at least for verifying marker expression strength is roughly equal in all files:
 ![Cluster expressions](media/tutorial-clustexpr.png?raw=true)
 - Tab **Cluster size heatmap** provides a visual representation of relative cluster cell count in different files (the R-originated heatmap additionally attempts to group the clusters and files by relative similarity and draws a dendrogram to express it). The data is normalized by columns to show changes in cluster contents well. Precise cell counts for each cluster and file can be exported in a CSV file using the **Export data** tab.
 ![Clusters vs. files heatmap](media/tutorial-heatmap.png?raw=true)
 - Tab **Compare files** allows seeing the difference between two different file groups in the embedding, giving a quick visual comparison of presence of various cell populations.
-- Tab **Significance plots** improves this view by precisely expressing the significance of the cluster size difference by coloring based on statistical testing results. P-values from testing the cluster sizes from "control" and "experiment" group for one-sided inequality are used as a basis the coloring. Using the significance plots, it is easy to detect even small (but statistically significant) differences in size of the populations. In our example, the significance plot confirms the findings from the heatmap, but since the statistical significance of the difference is relatively low (p-value is around 0.15), the p-value transform slider needs to be adjusted for seeing the colors:
+- Tab **Significance plots** improves this view by precisely expressing the significance of the cluster size difference by coloring based on statistical testing results. P-values from testing the cluster sizes from "control" and "experiment" group for one-sided inequality are used as a basis the coloring. Using the significance plots, it is easy to detect even small (but statistically significant) differences in size of the populations. In our example, the significance plot confirms the findings from the heatmap, but since the statistical significance of the difference is relatively low (p-value is around 0.15 for both B and T cell clusters), the p-value transform slider needs to be adjusted for actually seeing the colors:
 ![Significance plots](media/tutorial-sig.png?raw=true)
 
 ## Data export
