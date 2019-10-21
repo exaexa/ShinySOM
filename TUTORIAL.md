@@ -141,7 +141,7 @@ The screenshot shows dissection of the populations into B cells, T cells, and se
 
 ShinySOM offers several useful analyses for getting a good overview of the contents of the selected populations and the differences between individual files. These are available as sub-tabs in the **Analysis** tab:
 
-- Tab **Cluster expressions** allows quick visual comparison of expression of markers in files and clusters. This is useful e.g. for monitoring various activation-related markers (various cytokines) in samples with different stimulation. Unfortunately, the dataset we chose does not contain a viable marker for this analysis; but the view can still be used at least for verifying marker expression strength is roughly equal in all files:
+- Tab **Cluster expressions** allows quick visual comparison of expression of markers in files and clusters. This is useful e.g. for monitoring various activation-related markers in samples with different stimulation. Unfortunately, the dataset we chose does not contain a viable marker for this analysis; but the view can still be used at least for verifying marker expression strength is roughly equal in all files:
 ![Cluster expressions](media/tutorial-clustexpr.png?raw=true)
 - Tab **Cluster size heatmap** provides a visual representation of relative cluster cell count in different files (the R-originated heatmap additionally attempts to group the clusters and files by relative similarity and draws a dendrogram to express it). The data is normalized by columns to show changes in cluster contents well. Precise cell counts for each cluster and file can be exported in a CSV file using the **Export data** tab.
 ![Clusters vs. files heatmap](media/tutorial-heatmap.png?raw=true)
