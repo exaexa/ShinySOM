@@ -11,6 +11,8 @@ plotDsAExprs <- function(files, hlFiles, cellFile,
   ccols <- EmbedSOM::ClusterPalette(nlevels(fclust))
 
   for(cl in clusters) for(m in seq_len(length(markers))) {
+
+    if(m > dim(d)[2]) next
     
     clid <- findColIds(cl, levels(fclust))
     
@@ -27,7 +29,7 @@ plotDsAExprs <- function(files, hlFiles, cellFile,
       ylim=c(0,length(files)),
       frame.plot=F, type='n', xaxt='n', yaxt='n')
     mtext(side=3, markers[m])
-    mtext(side=2, annotation[cl])
+    if(cl %in% names(annotation)) mtext(side=2, annotation[cl])
 
     for(i in seq_len(length(files))) {
       flt <- (cellFile==i)&(clust==cl)
