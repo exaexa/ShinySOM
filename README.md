@@ -31,7 +31,7 @@ devtools::install_github('tsieger/mhca')
 devtools::install_github('exaexa/EmbedSOM')
 devtools::install_github('exaexa/scattermore')
 devtools::install_github('exaexa/shinyDendro')
-devtools::install_github('exaexa/ShinySOM')
+devtools::install_gitlab('exaexa/ShinySOM')
 ```
 
 You may want to check the versions of `shiny` and `htmlwidgets`, as the older versions may contain issues that prevent e.g. the clustering interface from working correctly. Make sure the versions are reasonably up-to-date. Specifically, _avoid_ combining `shiny-1.3.2` with `htmlwidgets-1.5`.
