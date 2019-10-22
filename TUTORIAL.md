@@ -3,7 +3,7 @@
 
 ## Introduction
 
-ShinySOM is a Shiny application for quick, highly interactive exploration of multidimensional flow cytometry data. The analysis model is derived from FlowSOM: The user inputs prepared samples in FCS files, uses SOMs and related analysis algorithms to dissect the data, and runs various analyses and clustering algorithms on the result.
+ShinySOM is a Shiny application for quick, highly interactive exploration and dissection of multidimensional flow cytometry data. The analysis model is derived from FlowSOM: The user inputs prepared samples in FCS files, uses SOMs and related analysis algorithms to dissect the data, and runs various analyses and clustering algorithms on the result.
 
 This tutorial assumes that you have ShinySOM and all dependencies installed and running (as described in the [README](./README.md)). If not, please make sure ShinySOM can be run, or ask your local technical staff for help.
 
