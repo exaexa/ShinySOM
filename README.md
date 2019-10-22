@@ -41,7 +41,7 @@ Basically, you need to switch to the scratch-space directory and create the
 directories, if they do not exist:
 
 ```r
-setwd('/some/directory/you/want/for/shinysom/')
+setwd('/some/directory/you/want/for/shinysom/')   # fill in your working directory
 dir.create('data')      # scratch space for the user files
 dir.create('datasets')  # dataset storage
 ```
@@ -57,6 +57,10 @@ ShinySOM()
 ```
 
 That should open a browser window with ShinySOM GUI running. If not, follow the link that the command should have printed out into your console.
+
+## Using ShinySOM
+
+There is a [separate tutorial](TUTORIAL.md) that shows the most common features on an example dataset.
 
 ## Documentation
 
