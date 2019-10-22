@@ -282,7 +282,7 @@ diffsomRenderEmbeddingParams <- function(ds) {
 }
 
 diffsomRenderEmbedSOMView <- function(ds) {
-  if(is.null(ds$map)) p("Compute the SOM first")
+  if(is.null(ds$map)) p("The SOM was not computed yet.")
   else div(
     tooltip("The expression of the selected marker or data column will be shown in the plot below.",
     selectInput('dsEmbedSOMViewCol', "Column",
@@ -296,7 +296,7 @@ diffsomRenderEmbedSOMView <- function(ds) {
 }
 
 diffsomRenderEmbedEView <- function(ds) {
-  if(is.null(ds$e)) p("Compute the embedding first")
+  if(is.null(ds$e)) p("The embedding was not computed yet.")
   else div(
     fluidRow(
       column(6,
@@ -325,7 +325,7 @@ diffsomRenderEmbedEView <- function(ds) {
 diffsomRenderClustering <- function(ds) {
   if(is.null(ds$map))
     tooltip("For performance and precision reasons, the clustering is ran atop the space pre-partitioned by the traned SOM.",
-    p("Compute the SOM first"))
+    p("Clustering is not available because SOM was not computed yet."))
   else div(
   fluidRow(
     column(3,
@@ -355,7 +355,7 @@ diffsomRenderClustering <- function(ds) {
 }
 
 diffsomRenderClustDendroWrap <- function(ds) {
-  if(is.null(ds$hclust)) div("Compute the cluster hierarchy first.")
+  if(is.null(ds$hclust)) div("The clustering tool requires the cluster hierarchy, which was not computed yet.")
   else shinyDendroOutput('dsClustShinyDendro', width='100%', height='40em')
 }
 
@@ -376,7 +376,7 @@ diffsomRenderClusterEmbedding <- function(ds) {
   defaultY <- scatterChoices[if(length(scatterChoices>1)) 2 else 1]
 
   if(is.null(ds$hclust))
-    p("Create the clustering first")
+    div()
   else div(
     plotOutput('plotDsClustEmbed',
       width='40em', height='40em',
@@ -416,13 +416,13 @@ diffsomRenderAnalysis <- function(ds) {
   tabsetPanel(type='tabs',
     tabPanel('Cluster expressions', uiOutput('diffsomAnalysisExprs')),
     tabPanel('Cluster size heatmap', uiOutput('diffsomAnalysisHeatmap')),
-    tabPanel('Compare files', uiOutput('diffsomAnalysisDiff')),
+    tabPanel('Compare embedded files', uiOutput('diffsomAnalysisDiff')),
     tabPanel('Significance plots', uiOutput('diffsomAnalysisSignificance'))
   )
 }
 
 diffsomRenderAExprs <- function(ds) {
-  if(is.null(ds$clust)||is.null(ds$annotation)) return(div("Cluster and annotate the cells first."))
+  if(is.null(ds$clust)||is.null(ds$annotation)) return(div("Displaying statistic about cell populations requires that you first create and annotate the population in the Clustering interface."))
   clust <- levels(factor(ds$clust))
   names(clust) <- ds$annotation[clust]
   clust <- clust[!is.na(clust)]
@@ -460,7 +460,7 @@ diffsomRenderAExprsPlot <- function(ds, input) {
     is.null(input$dsAExprsMarkers) ||
     length(input$dsAExprsClusters)==0 ||
     length(input$dsAExprsMarkers)==0)
-    div("Select markers and clusters first")
+    div("No data to plot. Select at least one marker and one annotated cell population in the interface on the left.")
   else plotOutput('plotDsAExprs',
     width=paste0(20*length(input$dsAExprsMarkers), 'em'),
     height=paste0(max(15, 2*length(ds$files))*length(input$dsAExprsClusters), 'em')
@@ -472,7 +472,7 @@ diffsomRenderAHeat <- function(ds) {
     tooltip("Heatmap shows relative amount of population cells in the files. The data is converted to percentages for each file, then normalized again for populations to allow comparison.",
     h2("Relative cell count heatmap")),
     if(is.null(ds$clust) || nlevels(factor(ds$clust))<1 || nlevels(factor(ds$files)) <= 1)
-      p("Heatmap requires at least two files and one cluster.")
+      div("Not enough data for the plot. Heatmap output requires at least 2 files and one annotated cell population.")
     else
       plotOutput('plotDsAHeat', width='100%', height='65em')
   )
@@ -480,7 +480,7 @@ diffsomRenderAHeat <- function(ds) {
 
 diffsomRenderADiff <- function(ds) {
   if(is.null(ds$e))
-    p("Embed the population first")
+    div("No data to plot. Embedding must be computed before displaying the differences.")
   else fluidRow(
     column(3,
       tooltip("This display allows quick visual comparison of cell population presence and properties between file groups.",
@@ -519,7 +519,7 @@ diffsomRenderADiff <- function(ds) {
 # there any reasonable way to assign the pair permutations in Shiny?
 diffsomRenderASignificance <- function(ds) {
   if(is.null(ds$e))
-    p("Embed the population first")
+    div("No data to plot. Embedding must be computed before displaying the differences.")
   else fluidRow(
     column(3,
       tooltip("Significance plots give quick informative overview of statistically relevant changes in relative cell abundance in files for each population. The clusters of selected granularity are painted blue (if the selected experiment file group has significantly less cells than the control group) or orange (if it has significantly more cells).",
@@ -560,9 +560,7 @@ diffsomRenderASignificance <- function(ds) {
 #
 
 diffsomRenderGating <- function(ds) {
-  if(is.null(ds$annotation) || is.null(ds$clust))
-    p("Cluster and annotate the populations first.")
-  else div(
+  div(
     tooltip("This step is usually called 'gating'. Selected populations will be collected to form a new dataset.",
     h3("Create population subsets")),
     pickerInput("dsGateClusters",
@@ -583,12 +581,12 @@ diffsomRenderGating <- function(ds) {
 diffsomRenderExport <- function(ds) {
   div(
     h3("Export population statistics"),
-    if(is.null(ds$annotation) || is.null(ds$clust)) p("Cluster and annotate the populations first.")
+    if(is.null(ds$annotation) || is.null(ds$clust)) p("Statistic export about populations requires that you create and annotate the population in the Clustering interface.")
     else tooltip("This exports a table where the cell count is computed for each gated population (in columns) in each file (in rows).",
       shinySaveButton("dsExportPops", "Population cell counts CSV", "Save a the population cell counts", filename='populations.csv')),
 
     h3("Export DiffSOM objects"),
-    if(is.null(ds$map)) p("Compute SOM for exporting it first")
+    if(is.null(ds$map)) p("SOM is not computed yet.")
     else tooltip("The exported file can be imported to DiffSOM using readRDS, and used as map= argument of function Embed().",
       shinySaveButton("dsExportDSMap", "DiffSOM map RDS", "Save the DiffSOM MAP RDS", filename='map.RDS')),
 
@@ -935,7 +933,7 @@ serveDiffsom <- function(ws, ds, input, output, session) {
       showNotification(type='error', "Dataset of same name already exists.")
     } else if (!datasetNameValid(input$dsGateNewName)) {
       showNotification(type='error', "Dataset name is invalid.")
-    }else if(length(input$dsGateClusters)==0) {
+    } else if(is.null(input$dsGateClusters) || length(input$dsGateClusters)==0) {
       showNotification(type='error', "No populations selected")
     } else {
       filt <- ds$clust[ds$map$mapping[,1]] %in% input$dsGateClusters
