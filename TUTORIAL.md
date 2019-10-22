@@ -23,7 +23,7 @@ In this tutorial, we demonstrate this workflow on a [well-explored dataset used 
 
 ShinySOM is a server application and operates its own storage of intermediate files and datasets. Data and dataset management is controlled from the top bar:
 
-![top bar](media/tutorial-topbar.png?raw=true)
+<img src="media/tutorial-topbar.png?raw=true" alt="Top bar" width="50%"/>
 
 The buttons from left to right, allow:
 
@@ -34,11 +34,11 @@ The buttons from left to right, allow:
 
 After downloading the [data from FlowRepository](https://flowrepository.org/id/FR-FCM-ZZQY) online, we first want to upload them to the server. After clicking the **Upload/download data** button, we can choose the 4 FCS files from the dataset to upload using the **Browser** button:
 
-![browse button](media/tutorial-upload.png?raw=true)
+<img src="media/tutorial-upload.png?raw=true" alt="browse button" width="50%">
 
 When the upload is complete, we continue by aggregating the files into a dataset. After clicking the **Manage datasets** button, an interface for creating the datasets appear:
 
-![dataset create](media/tutorial-dscreate.png?raw=true)
+<img src="media/tutorial-dscreate.png?raw=true" alt="dataset create" width="50%">
 
 In the interface, you will be able to
 
@@ -49,13 +49,13 @@ In the interface, you will be able to
 
 After a short while, the newly created dataset should appear in the list in the top bar, from where we can opened it using the **Load** button:
 
-![dataset choose](media/tutorial-dschoose.png?raw=true)
+<img src="media/tutorial-dschoose.png?raw=true" alt="dataset choose" width="50%">
 
 ## Viewing the dataset contents
 
 Opened datasets can be explored in the usual 2-dimensional scatterplots; these are available in the **Data overview** tab. We can choose a set of parameters for horizontal and vertical axes, and a color scheme for the points different from the default density:
 
-![overview](media/tutorial-overview.png?raw=true)
+<img src="media/tutorial-overview.png?raw=true" alt="overview" width="50%">
 
 The screenshot shows a combination of forward and side scatter plots, colored by side-scatter signal width. (This clearly identifies e.g. the doublet clusters.)
 
@@ -67,7 +67,7 @@ Among other, the plot with CD11b marker clearly shows that the data still need t
 
 Transformation editor is available under the tab **Transform&Scale**. Individual data dimensions (ie. cell parameters) can be selected and subjected to some of the common transformation methods:
 
-![transform](media/tutorial-transform.png?raw=true)
+<img src="media/tutorial-transform.png?raw=true" alt="transform" width="50%">
 
 In the screenshot, we have
 
@@ -90,7 +90,7 @@ Here, we will first focus on "cleaning", i.e. removing the doublets, cell debris
 
 SOM training and embedding is done in the **Embedding** tab, as shown on the screenshot:
 
-![embedding](media/tutorial-embed.png?raw=true)
+<img src="media/tutorial-embed.png?raw=true" alt="embedding" width="50%">
 
 The performed actions are as follows:
 
@@ -107,7 +107,7 @@ The performed actions are as follows:
 Cell population are selected in a dendrogram that is built upon the FlowSOM clustering. This allows quick identification of large datasets of interest, and provides a relatively effortless way for separating the data in multiple dimensions at once. Additionally, gating bias is reduced, since the dendrogram is precomputed to separate the populations well in the multidimensional space, and diverging from it requires additional user effort.
 
 The populations are selected in a [shinyDendro](https://github.com/exaexa/shinyDendro)-based interface:
-![creating a subset dataset](media/tutorial-cluster.png?raw=true)
+<img src="media/tutorial-cluster.png?raw=true" alt="creating a subset dataset" width="50%">
 
 1. First, in the **Clustering** tab, we create a dendrogram structure using a selected hierarchical clustering algorithm.
 2. The populations are selected in the dendrogram as such: After clicking (and focusing) the shinyDendro interface, keyboard is used to choose a single-letter cluster "key" (any of `a` to `z` and `0` to `9`); cluster key represents an unique assigned classification, which is, put more simply, the "cluster color". Clicking in the dendrogram causes the clicked branch of the tree to be painted by this chosen color. Resulting classification is immediately visible in the embedding on the right. Additionally, the embedding plot can be used for brushing -- drawing a rectangle around cells in the view highlights the selected cells in the dendrogram.
@@ -120,7 +120,7 @@ The populations are selected in a [shinyDendro](https://github.com/exaexa/shinyD
 
 For demonstration, we will extract the identified live singlet cells and save them in a separate dataset using the **Dissection** tab:
 
-![creating a subset dataset](media/tutorial-dissect.png?raw=true)
+<img src="media/tutorial-dissect.png?raw=true" alt="creating a subset dataset" width="50%">
 
 The "Spleen-clean" dataset will appear in the top bar, next to the original "Spleen" dataset.
 
@@ -128,7 +128,7 @@ The "Spleen-clean" dataset will appear in the top bar, next to the original "Spl
 
 After reducing the dataset, we have embedded and dissected it again, to get a complete view of the subpopulations:
 
-![creating a subset dataset](media/tutorial-cluster2.png?raw=true)
+<img src="media/tutorial-cluster2.png?raw=true" alt="creating a subset dataset" width="50%">
 
 Compared to the processing of the original dataset, there are three main changes:
 - it was _not_ necessary to transform the dataset again (the data stays transformed from the previous step)
@@ -142,12 +142,12 @@ The screenshot shows dissection of the populations into B cells, T cells, and se
 ShinySOM offers several useful analyses for getting a good overview of the contents of the selected populations and the differences between individual files. These are available as sub-tabs in the **Analysis** tab:
 
 - Tab **Cluster expressions** allows quick visual comparison of expression of markers in files and clusters. This is useful e.g. for monitoring various activation-related markers in samples with different stimulation. Unfortunately, the dataset we chose does not contain a viable marker for this analysis; but the view can still be used at least for verifying marker expression strength is roughly equal in all files:
-![Cluster expressions](media/tutorial-clustexpr.png?raw=true)
+<img src="media/tutorial-clustexpr.png?raw=true" alt="Cluster expressions" width="50%">
 - Tab **Cluster size heatmap** provides a visual representation of relative cluster cell count in different files (the R-originated heatmap additionally attempts to group the clusters and files by relative similarity and draws a dendrogram to express it). The data is normalized by columns to show changes in cluster contents well. Precise cell counts for each cluster and file can be exported in a CSV file using the **Export data** tab.
-![Clusters vs. files heatmap](media/tutorial-heatmap.png?raw=true)
+<img src="media/tutorial-heatmap.png?raw=true" alt="Clusters vs. files heatmap" width="50%">
 - Tab **Compare files** allows seeing the difference between two different file groups in the embedding, giving a quick visual comparison of presence of various cell populations.
 - Tab **Significance plots** improves this view by precisely expressing the significance of the cluster size difference by coloring based on statistical testing results. P-values from testing the cluster sizes from "control" and "experiment" group for one-sided inequality are used as a basis the coloring. Significance plots are designed for detection of small statistically significant differences in size of the populations. In our example, the significance plot confirms the findings from the heatmap. Because the statistical significance of the difference is relatively low (p-value is around 0.15 for both B and T cell clusters), the p-value slider needs to be adjusted in order to see the coloring:
-![Significance plots](media/tutorial-sig.png?raw=true)
+<img src="media/tutorial-sig.png?raw=true" alt="Significance plots" width="50%">
 
 ## Data export
 
