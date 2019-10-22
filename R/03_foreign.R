@@ -2,7 +2,6 @@
 getForeignRoots <- function() options('ShinySOM.foreignRoots')$ShinySOM.foreignRoots
 
 getRoot <- function(root) {
-  print(getForeignRoots())
   if(root %in% names(getForeignRoots())) getForeignRoots()[root]
   else stop("Unknown root!")
 }

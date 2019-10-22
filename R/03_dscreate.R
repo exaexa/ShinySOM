@@ -244,7 +244,12 @@ serveDsCreate <- function(workspace, input, output, session) {
   )
 
   # Preview of column names
-  prettyCols <- reactive({dsCreateLoadPrettyCols(input$dsCreateFiles)})
+  prettyCols <- reactive({
+    if(is.list(input$dsCreateFiles))
+      dsCreateLoadPrettyCols(input$dsCreateFiles)
+    else
+      c()
+  })
 
   # Main UI
   output$dsCreate <- renderUI({renderDsCreate(dsCreate)})
