@@ -11,7 +11,7 @@ docker pull exaexa/shinysom:latest
 docker run -d -p 8080:8080 -t exaexa/shinysom
 ```
 
-After that, tyoe [localhost:8080](http://localhost:8080/) into your web browser; if everything went right, you should be presented with a working ShinySOM installation.
+After that, type [localhost:8080](http://localhost:8080/) into your web browser. If everything went right, you should be able to see and use a working ShinySOM installation.
 
 For quick start, continue to the [tutorial](TUTORIAL.md).
 
