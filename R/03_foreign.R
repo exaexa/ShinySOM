@@ -9,7 +9,7 @@ getRoot <- function(root) {
 reactiveValsForeign <- function()
   reactiveValues(
     up.dir='/',
-    up.root=names(options()$ShinySOM.foreignRoots)[0],
+    up.root=names(getForeignRoots())[1],
     down.files=c()
   )
 
