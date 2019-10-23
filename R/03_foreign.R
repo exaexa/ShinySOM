@@ -9,7 +9,7 @@ getRoot <- function(root) {
 reactiveValsForeign <- function()
   reactiveValues(
     up.dir='/',
-    up.root="Session storage",
+    up.root=names(options()$ShinySOM.foreignRoots)[0],
     down.files=c()
   )
 
