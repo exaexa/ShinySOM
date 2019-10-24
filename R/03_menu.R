@@ -18,11 +18,12 @@ renderMenu <- function(ws) {
 }
 
 setMenuDataset <- function(dsid, ws,ds) {
-    if(dsid!=ws$page && dsid!="") {
+  if(dsid!=ws$page && dsid!="") {
     if(ws$page %in% ws$datasets) {
       print("saving dataset...")
       showNotification("Saving...")
       saveDataset(ws, ws$page, dsGetDataset(ds))
+      dsClearDataset(ds)
     }
     ws$page <- dsid
     if(ws$page %in% ws$datasets) {

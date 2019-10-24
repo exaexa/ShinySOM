@@ -3,31 +3,36 @@
 # DiffSOM-style core values, dataset loading/saving
 #
 
-reactiveValsDiffsom <- function()
-  #TODO: It would be nice to simplify the assignments here (possibly using a
-  #      single list of values).
-  reactiveValues(
-    files=NULL,
-    cellFile=NULL,
-    data=NULL,
-    prettyColnames=NULL,
-    seed=NULL,
-    colsToUse=NULL,
-    importance=NULL,
-    somMetric=NULL,
-    dataMetric=NULL,
-    xdim=NULL,
-    rlen=NULL,
-    map=NULL,
-    smooth=NULL,
-    adjust=NULL,
-    k=NULL,
-    emcoords=NULL,
-    e=NULL,
-    hclust=NULL,
-    clust=NULL,
-    annotation=NULL
-  )
+dsReactiveValNames <- c(
+  'files',
+  'cellFile',
+  'data',
+  'prettyColnames',
+  'seed',
+  'colsToUse',
+  'importance',
+  'dataMetric',
+  'somMetric',
+  'xdim',
+  'rlen',
+  'map',
+  'smooth',
+  'adjust',
+  'k',
+  'emcoords',
+  'e',
+  'hclust',
+  'clust',
+  'annotation'
+)
+
+
+reactiveValsDiffsom <- function() {
+  rvs <- list()
+  for(n in dsReactiveValNames) rvs[n] <- list(NULL) # R!
+
+  do.call(reactiveValues, rvs)
+}
 
 #
 # dataset initialization
@@ -36,82 +41,29 @@ reactiveValsDiffsom <- function()
 dsInitFromDataset <- function(ds, dataset) {
   print("getting dataset from workspace")
 
-  # reset everything first so that reactive stuff gets properly reloaded
-  ds$files <- NULL
-  ds$cellFile <- NULL
-  ds$data <- NULL
-  ds$prettyColnames <- NULL
-  ds$seed <- NULL
-  ds$colsToUse <- NULL
-  ds$importance <- NULL
-  ds$somMetric <- NULL
-  ds$dataMetric <- NULL
-  ds$xdim <- NULL
-  ds$rlen <- NULL
-  ds$map <- NULL
-  ds$smooth <- NULL
-  ds$adjust <- NULL
-  ds$k <- NULL
-  ds$emcoords <- NULL
-  ds$e <- NULL
-  ds$hclust <- NULL
-  ds$clust <- NULL
-  ds$annotation <- NULL
-
   # and load now
-  ds$files <- dataset$files
-  ds$cellFile <- dataset$cellFile
-  ds$data <- dataset$data
-  ds$prettyColnames <- dataset$prettyColnames
-  ds$seed <- dataset$seed
-  ds$colsToUse <- dataset$colsToUse
-  ds$importance <- dataset$importance
-  ds$somMetric <- dataset$somMetric
-  ds$dataMetric <- dataset$dataMetric
-  ds$xdim <- dataset$xdim
-  ds$rlen <- dataset$rlen
-  ds$map <- dataset$map
-  ds$smooth <- dataset$smooth
-  ds$adjust <- dataset$adjust
-  ds$k <- dataset$k
-  ds$emcoords <- dataset$emcoords
-  ds$e <- dataset$e
-  #switch order here because of reloading shinyDendro&annotations
-  ds$annotation <- dataset$annotation
-  ds$clust <- dataset$clust
-  ds$hclust <- dataset$hclust
+  for(n in dsReactiveValNames) ds[[n]] <- dataset[[n]]
+}
+
+dsClearDataset <- function(ds) {
+  print("clearing the workspace")
+  # reset everything first so that reactive stuff gets properly reloaded
+  for(n in dsReactiveValNames) ds[[n]] <- NULL
+
 }
 
 dsGetDataset <- function(ds) {
   print("returning dataset to workspace")
-  list(
-  files=ds$files,
-  cellFile=ds$cellFile,
-  data=ds$data,
-  prettyColnames=ds$prettyColnames,
-  seed=ds$seed,
-  colsToUse=ds$colsToUse,
-  importance=ds$importance,
-  somMetric=ds$somMetric,
-  dataMetric=ds$dataMetric,
-  xdim=ds$xdim,
-  rlen=ds$rlen,
-  map=ds$map,
-  smooth=ds$smooth,
-  adjust=ds$adjust,
-  k=ds$k,
-  emcoords=ds$emcoords,
-  e=ds$e,
-  hclust=ds$hclust,
-  clust=ds$clust,
-  annotation=ds$annotation)
+  dataset <- list()
+  for(n in dsReactiveValNames) dataset[n] <- list(ds[[n]])
+  dataset
 }
 
 #
 # Tab renderers
 #
 
-renderDiffsom <- function() {
+renderDiffsom <- function(ws) {
   tabsetPanel(type='tabs',
     tabPanel('Data overview', uiOutput('diffsomOverview')),
     tabPanel('Transform&Scale', uiOutput('diffsomTransform')),
@@ -671,7 +623,7 @@ serveDiffsom <- function(ws, ds, input, output, session) {
       distf=distf,
       nhbr.method=nhbr.method)
     ds$e <- NULL
-    ds$clust <- NULL
+    ds$clust <- rep(NA, dim(ds$map$codes)[1])
     ds$hclust <- NULL
     ds$annotation <- NULL
     showNotification(type='message', "SOM ready.")
@@ -754,40 +706,41 @@ serveDiffsom <- function(ws, ds, input, output, session) {
 
   output$uiDsClustDendroWrap <- renderUI(diffsomRenderClustDendroWrap(ds))
 
-  output$dsClustShinyDendro <- renderShinyDendro({
+  output$dsClustShinyDendro <- renderShinyDendro(
     if(!is.null(ds$hclust)) {
-      colors <- getHeatmapColors(ds, input$dsClusterHeat)
-      if(!is.null(input$dsBrushClustEmbed)) {
-        b <- input$dsBrushClustEmbed
-        dx <- getClustEmbedData(ds$e, ds$data, ds$prettyColnames, input$dsClustEmbedX)
-        dy <- getClustEmbedData(ds$e, ds$data, ds$prettyColnames, input$dsClustEmbedY)
-        st <- table(data.frame(
-          som=ds$map$mapping[,1],
-          tf=factor(levels=c(T,F),
-              dx>=b$xmin & dx<=b$xmax &
-              dy>=b$ymin & dy<=b$ymax
-            )
-        ))
-        br <- rep(0, length(isolate(ds$clust)))
-        br[as.numeric(rownames(st))] <- st[,'TRUE']/apply(st,1,function(v) max(sum(v), 1))
-        colors <- cbind(colors, Brush=EmbedSOM::ExpressionPalette(100)[1+as.integer(99*br)])
-      }
-      shinyDendro('dsClustDendroOutput',
-        ds$hclust$height,
-        ds$hclust$merge,
-        ds$hclust$order,
-        heatmap=colors,
-        assignment=isolate(if(is.null(ds$clust)) NULL else unsetClustNAs(ds$clust)),
-        fontFg='black',
-        fontShadow='white',
-        fontScale=0.6
-      )
-    } else NULL
+    colors <- getHeatmapColors(ds, input$dsClusterHeat)
+    if(!is.null(input$dsBrushClustEmbed)) {
+      b <- input$dsBrushClustEmbed
+      dx <- getClustEmbedData(ds$e, ds$data, ds$prettyColnames, input$dsClustEmbedX)
+      dy <- getClustEmbedData(ds$e, ds$data, ds$prettyColnames, input$dsClustEmbedY)
+      st <- table(data.frame(
+        som=ds$map$mapping[,1],
+        tf=factor(levels=c(T,F),
+            dx>=b$xmin & dx<=b$xmax &
+            dy>=b$ymin & dy<=b$ymax
+          )
+      ))
+      br <- rep(0, length(isolate(ds$clust)))
+      br[as.numeric(rownames(st))] <- st[,'TRUE']/apply(st,1,function(v) max(sum(v), 1))
+      colors <- cbind(colors, Brush=EmbedSOM::ExpressionPalette(100)[1+as.integer(99*br)])
+    }
+    shinyDendro('dsClustDendroOutput',
+      ds$hclust$height,
+      ds$hclust$merge,
+      ds$hclust$order,
+      heatmap=colors,
+      assignment=unsetClustNAs(isolate(ds$clust)),
+      fontFg='black',
+      fontShadow='white',
+      fontScale=0.6,
+      key=ws$page
+    )
   })
 
-  observeEvent(input$dsClustDendroOutput, {
-    ds$clust <- setClustNAs(input$dsClustDendroOutput)
-  })
+  observeEvent(input$dsClustDendroOutput,
+    if(getShinyDendroKey(input$dsClustDendroOutput) == ws$page)
+      ds$clust <- setClustNAs(getShinyDendroAssignment(input$dsClustDendroOutput))
+  )
 
   output$uiDsClusterEmbedding <- renderUI(
     diffsomRenderClusterEmbedding(ds)

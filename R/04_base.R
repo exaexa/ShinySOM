@@ -66,8 +66,8 @@ server <- function(input, output, session) {
   })
 
   #output$saving <- renderUI({renderSaving()})
-  output$foreign <- renderUI({renderForeign(foreign)})
-  output$diffsom <- renderUI({renderDiffsom()})
+  output$foreign <- renderUI(renderForeign(foreign))
+  output$diffsom <- renderUI(renderDiffsom(workspace))
 
   serveMenu(workspace, diffsom, input, output)
   serveForeign(foreign, input, output)
