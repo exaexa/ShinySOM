@@ -86,3 +86,7 @@ No, ShinySOM focuses on multidimensional analysis of the data, compensation and 
 ### I want to export the analysis results, but clicking the buttons does not start any download. Why?
 
 Analysis results are exported to the server side of the application. You may download it from the data transfer interface, accessible by clicking the "Upload/download data" button in the top bar.
+
+### How to turn on the SIMD support?
+
+You need EmbedSOM installation compiled with the matching compiler flags; ShinySOM will automatically use the result. See [EmbedSOM documentation](https://github.com/exaexa/EmbedSOM) for details. The expected speedup of SOM building and embedding ranges between 3x and 20x, usually around 5x.
