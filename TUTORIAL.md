@@ -107,6 +107,7 @@ The performed actions are as follows:
 Cell population are selected in a dendrogram that is built upon the FlowSOM clustering. This allows quick identification of large datasets of interest, and provides a relatively effortless way for separating the data in multiple dimensions at once. Additionally, gating bias is reduced, since the dendrogram is precomputed to separate the populations well in the multidimensional space, and diverging from it requires additional user effort.
 
 The populations are selected in a [shinyDendro](https://github.com/exaexa/shinyDendro)-based interface:
+
 <img src="media/tutorial-cluster.png?raw=true" alt="creating a subset dataset" width="50%">
 
 1. First, in the **Clustering** tab, we create a dendrogram structure using a selected hierarchical clustering algorithm.
@@ -131,6 +132,7 @@ After reducing the dataset, we have embedded and dissected it again, to get a co
 <img src="media/tutorial-cluster2.png?raw=true" alt="creating a subset dataset" width="50%">
 
 Compared to the processing of the original dataset, there are three main changes:
+
 - it was _not_ necessary to transform the dataset again (the data stays transformed from the previous step)
 - we have avoided the use of the scatter and L/D cell parameters for SOM and embedding, and focused only on the lineage markers
 - we used 24x24 SOM size for increased detail of the small populations
@@ -142,11 +144,17 @@ The screenshot shows dissection of the populations into B cells, T cells, and se
 ShinySOM offers several useful analyses for getting a good overview of the contents of the selected populations and the differences between individual files. These are available as sub-tabs in the **Analysis** tab:
 
 - Tab **Cluster expressions** allows quick visual comparison of expression of markers in files and clusters. This is useful e.g. for monitoring various activation-related markers in samples with different stimulation. Unfortunately, the dataset we chose does not contain a viable marker for this analysis; but the view can still be used at least for verifying marker expression strength is roughly equal in all files:
+
 <img src="media/tutorial-clustexpr.png?raw=true" alt="Cluster expressions" width="50%">
+
 - Tab **Cluster size heatmap** provides a visual representation of relative cluster cell count in different files (the R-originated heatmap additionally attempts to group the clusters and files by relative similarity and draws a dendrogram to express it). The data is normalized by columns to show changes in cluster contents well. Precise cell counts for each cluster and file can be exported in a CSV file using the **Export data** tab.
+
 <img src="media/tutorial-heatmap.png?raw=true" alt="Clusters vs. files heatmap" width="50%">
+
 - Tab **Compare files** allows seeing the difference between two different file groups in the embedding, giving a quick visual comparison of presence of various cell populations.
+
 - Tab **Significance plots** improves this view by precisely expressing the significance of the cluster size difference by coloring based on statistical testing results. P-values from testing the cluster sizes from "control" and "experiment" group for one-sided inequality are used as a basis the coloring. Significance plots are designed for detection of small statistically significant differences in size of the populations. In our example, the significance plot confirms the findings from the heatmap. Because the statistical significance of the difference is relatively low (p-value is around 0.15 for both B and T cell clusters), the p-value slider needs to be adjusted in order to see the coloring:
+
 <img src="media/tutorial-sig.png?raw=true" alt="Significance plots" width="50%">
 
 ## Data export
@@ -155,4 +163,46 @@ Tab **Export data** provides a way to export the generated data for external pro
 
 - The whole dataset can be exported as FCS or CSV file, which allows post-processing in various other cytometry-related tools.
 - SOM, clustering and other values can be exported for R in a RDS file, in order to be used with FlowSOM, EmbedSOM, or various pretty-plotting packages such as ggplot.
-- Cell count in populations (which is the usual outcome of many analyses) can be exported directly as a CSV file.
+- Cell counts of individual populations (which are the usual output of many experiments) can be exported directly as a CSV file.
+
+# Using the batch API
+
+## Why batch processing?
+
+There are various limitations that prevent efficient interactive work with large datasets. Those consist mostly of necessary delays while processing large data -- although ShinySOM tries to do the best with large datasets, timing and resource usage of the involved algorithms will always cross the "bearable" limit for interactive usage if the datasets grow enough.
+
+One possible alleviation of this problem is to downscale the datasets. Because ShinySOM is designed to cope well with a few millions of loaded cells, the downscaling is not even required for many datasets (at least not for common experiments); and creates only a minor statistical loss even in larger experiments. Despite of that, downscaled datasets should not be used for obtaining any final results.
+
+Batch API of ShinySOM is designed for alleviating this problem: You can prepare the analysis (create a "gating scheme") in the interactive interface using a slightly reduced cell sample, export the analysis, and automatically apply it to any number of incoming FCS files.
+
+## Exporting and loading the analysis
+
+```r
+a <- readRDS('step1.shinysom')
+```
+
+## Available functions
+
+- LoadCells
+- Process
+- ExportDF
+- Dissect
+
+## Batch-processing the tutorial dataset
+
+TODOXXXXXXX Export the datasets from the GUI.
+
+```r
+> cleaningA <- readRDS('clean.shinysom')
+> populationsA <- readRDS('pops.shinysom')
+> a <- Process(LoadCells('21-10-15_Tube_028.fcs'), cleaningA)
+> PopulationList(a)
+TODOXXXXXXXXXX
+```
+
+```r
+> a <- Process(Dissect(a, "Single cells"), populationsB)
+> df <- ExportDF(a)
+> print(table(a$Population))
+TODOXXXXXXXXXXXXXX
+```
