@@ -29,7 +29,7 @@ The buttons from left to right, allow:
 
 - **Upload/download data**: moving the data to the server (or, eventually, downloading the results and exported files from the server)
 - **Manage datasets**: aggregating and converting the uploaded FCS files into datasets (also cloning and deleting the existing datasets)
-- **Load**: opening the dataset selected in the dropdown list
+- **Load**: opening the dataset selected in the drop-down list
 - **Save current**: force-saving the currently open dataset
 
 After downloading the [data from FlowRepository](https://flowrepository.org/id/FR-FCM-ZZQY) online, we first want to upload them to the server. After clicking the **Upload/download data** button, we can choose the 4 FCS files from the dataset to upload using the **Browser** button:
@@ -44,7 +44,7 @@ In the interface, you will be able to
 
 1. choose the 4 uploaded files on the server using the **Select dataset files** button,
 2. pick several data columns from the FCS files relevant for the analysis (For the demonstration, we chose all columns except `Time`)
-3. reduce the dataset slightly by subsampling (This step is unnecessary, but smaller datasets are processed and plotted much quicker, which helps to maintain the workflow interactivity. As a general rule, dataset exploration requires highly interactive environment and should not take more than around 1 million of cells.)
+3. reduce the dataset slightly by sub-sampling (This step is unnecessary, but smaller datasets are processed and plotted much quicker, which helps to maintain the workflow interactivity. As a general rule, dataset exploration requires highly interactive environment and should not take more than around 1 million of cells.)
 4. Choose the final name of the dataset (here we call it just "Spleen") and click the **Create dataset** button, which starts the aggregation process.
 
 After a short while, the newly created dataset should appear in the list in the top bar, from where we can opened it using the **Load** button:
@@ -78,7 +78,7 @@ In the screenshot, we have
 
 Finally, the **Apply** button is pressed (see 5 in the screenshot) to save the transformation in the dataset.
 
-Other transforms can be applied as well, e.g. the ArcSinh transform is viable for mass-cytometry samles.
+Other transforms can be applied as well, e.g. the ArcSinh transform is viable for mass-cytometry samples.
 
 ## Identifying the populations
 
@@ -94,7 +94,7 @@ SOM training and embedding is done in the **Embedding** tab, as shown on the scr
 
 The performed actions are as follows:
 
-1. We have chosen a subset of the cell parameters that will be used in this step of dissection. To improve the cleaning, we have selected only the forward and side scatters, and the L/D marker (total 7 markers). Other parameters of the SOM may be selected -- e.g. size can be slightly increased to improve clustering resolution, various cell parameters can be assigned additional importance, and SOM training space metrics may be changed. Default values should work well in most usecases.
+1. We have chosen a subset of the cell parameters that will be used in this step of dissection. To improve the cleaning, we have selected only the forward and side scatters, and the L/D marker (total 7 markers). Other parameters of the SOM may be selected -- e.g. size can be slightly increased to improve clustering resolution, various cell parameters can be assigned additional importance, and SOM training space metrics may be changed. Default values should work well in most use cases.
 2. SOM training is executed by clicking the **Compute SOM** button. On the default SOM size, the training takes around 10 seconds; after that the resulting SOM is displayed in the plot on the right. SOM training process is randomized and the SOM generated on another computer will probably differ, but the count and relative positions of the identified clusters should stay roughly same.
 3. The contents of the SOM plot can be colored by choosing different cell parameters. For example, choosing the L/D marker allows seeing a clearly defined cluster of dead cells in the upper part of the plot.
 4. A better EmbedSOM-based view is obtained by clicking the **Compute embedding** button.
@@ -113,9 +113,9 @@ The populations are selected in a [shinyDendro](https://github.com/exaexa/shinyD
 1. First, in the **Clustering** tab, we create a dendrogram structure using a selected hierarchical clustering algorithm.
 2. The populations are selected in the dendrogram as such: After clicking (and focusing) the shinyDendro interface, keyboard is used to choose a single-letter cluster "key" (any of `a` to `z` and `0` to `9`); cluster key represents an unique assigned classification, which is, put more simply, the "cluster color". Clicking in the dendrogram causes the clicked branch of the tree to be painted by this chosen color. Resulting classification is immediately visible in the embedding on the right. Additionally, the embedding plot can be used for brushing -- drawing a rectangle around cells in the view highlights the selected cells in the dendrogram.
 3. Cell parameters may be displayed next to the dendrogram as a heatmap, in order to aid cluster identification.
-4. The embedding view can be quickly colored by any marker expression or converted to display the usual 2-dimensional dotplot (with the same possibility of brushing).
+4. The embedding view can be quickly colored by any marker expression or converted to display the usual 2-dimensional scatter plot (with the same possibility of brushing).
 5. After the desired populations are selected, we can assign them interpretable names and save them. That makes the named populations available to the final parts of the workflow (mainly analysis and subset dissection).
-6. The clustered cells may be immediately observed in a more complicated scatterplot structure, using the same interface as in Overview.
+6. The clustered cells may be immediately observed in a more complicated scatter plot structure, using the same interface as in Overview.
 
 ## Create a dataset subset
 
@@ -161,9 +161,9 @@ ShinySOM offers several useful analyses for getting a good overview of the conte
 
 Tab **Export data** provides a way to export the generated data for external programs:
 
-- The whole dataset can be exported as FCS or CSV file, which allows post-processing in various other cytometry-related tools.
-- SOM, clustering and other values can be exported for R in a RDS file, in order to be used with FlowSOM, EmbedSOM, or various pretty-plotting packages such as ggplot.
 - Cell counts of individual populations (which are the usual output of many experiments) can be exported directly as a CSV file.
+- The whole dataset can be exported as FCS or CSV file, which allows post-processing in various other cytometry-related tools.
+- While datasets can be exported in RDS format. That allows interoperability with other packages that use the same data structures (most notably any packages that work with FlowSOM). Exported dataset objects may additionally be used for batch-processing using the ShinySOM batch API (see below).
 
 # Using the batch API
 
@@ -171,7 +171,7 @@ Tab **Export data** provides a way to export the generated data for external pro
 
 There are various limitations that prevent efficient interactive work with large datasets. Those consist mostly of necessary delays while processing large data -- although ShinySOM tries to do the best with large datasets, timing and resource usage of the involved algorithms will always cross the "bearable" limit for interactive usage if the datasets grow enough.
 
-One possible alleviation of this problem is to downscale the datasets. Because ShinySOM is designed to cope well with a few millions of loaded cells, the downscaling is not even required for many datasets (at least not for common experiments); and creates only a minor statistical loss even in larger experiments. Despite of that, downscaled datasets should not be used for obtaining any final results.
+One possible alleviation of this problem is to downscale the datasets. Because ShinySOM is designed to cope well with a few millions of loaded cells, the downsampling is not even required for many datasets (at least not for common experiments); and creates only a minor statistical loss even in larger experiments. Despite of that, downsampled datasets should not be used for obtaining any final results.
 
 Batch API of ShinySOM is designed for alleviating this problem: You can prepare the analysis (create a "gating scheme") in the interactive interface using a slightly reduced cell sample, export the analysis, and automatically apply it to any number of incoming FCS files.
 
@@ -209,6 +209,8 @@ Finally, batch processing the original, non-subsampled datasets is done by readi
 First, we read the analysis objects and full 2 million cells of FCS contents:
 
 ```r
+library(ShinySOM)
+
 step1 <- readRDS('step1.shinysom')
 step2 <- readRDS('step2.shinysom')
 dataset <- LoadCells(
