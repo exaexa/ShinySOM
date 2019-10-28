@@ -167,7 +167,7 @@ dsCreateDoLoad <- function(name, fs, subsample, noComp, nCells, colsToLoad, work
   fns <- dsCreateFiles(fs)
 
   withProgress(message='Aggregating FCS files', value=1, min=1, max=length(fns)+1, {
-    ds <- dsCreateDoLoadInternal(fs, subsample, noComp, nCells, colsToLoad, progress=TRUE)
+    ds <- dsCreateDoLoadInternal(fns, subsample, noComp, nCells, colsToLoad, progress=TRUE)
     setProgress('Creating dataset', value=length(fns)+1)
     saveDataset(workspace, name, ds)
   })
