@@ -8,6 +8,7 @@ dsReactiveValNames <- c(
   'cellFile',
   'data',
   'prettyColnames',
+  'transforms',
   'seed',
   'colsToUse',
   'importance',
@@ -53,7 +54,7 @@ dsClearDataset <- function(ds) {
 }
 
 dsGetDataset <- function(ds) {
-  print("returning dataset to workspace")
+  print("collecting the dataset")
   dataset <- list()
   for(n in dsReactiveValNames) dataset[n] <- list(ds[[n]])
   dataset
@@ -537,10 +538,13 @@ diffsomRenderExport <- function(ds) {
     else tooltip("This exports a table where the cell count is computed for each gated population (in columns) in each file (in rows).",
       shinySaveButton("dsExportPops", "Population cell counts CSV", "Save a the population cell counts", filename='populations.csv')),
 
-    h3("Export DiffSOM objects"),
-    if(is.null(ds$map)) p("SOM is not computed yet.")
-    else tooltip("The exported file can be imported to DiffSOM using readRDS, and used as map= argument of function Embed().",
-      shinySaveButton("dsExportDSMap", "DiffSOM map RDS", "Save the DiffSOM MAP RDS", filename='map.RDS')),
+    h3("Export datasets"),
+    p(
+    tooltip("This exports the whole dataset, together with all cell data and analysis metadata.",
+      shinySaveButton("dsExportDSFull", "Export full dataset RDS", "Save the dataset RDS", filename='ds.shinysom')),
+    tooltip("This exports all dataset metadata without the individual cell data. The file is significantly smaller than the full dataset, and can still be used to process other files using the Batch API.",
+      shinySaveButton("dsExportDSNoData", "Export analysis RDS", "Save the analysis RDS", filename='ds.shinysom'))
+    ),
 
     h3("Different export formats"),
     tooltip("Export FCS file with the embedding and population assignment.",
@@ -580,7 +584,10 @@ serveDiffsom <- function(ws, ds, input, output, session) {
   observeEvent(input$dsTransApply, {
     if(!is.null(input$dsTransConfirm) && input$dsTransConfirm) {
       updateCheckboxInput(session=session, inputId='dsTransConfirm', value=F)
-      ds$data <- transformedDsData(ds, input)
+      transform <- transformedDsData(ds, input)
+      ds$data <- transform$data
+      if(is.null(ds$transforms)) ds$transforms <- list()
+      ds$transforms[[length(ds$transforms)+1]] <- transform$desc
       updatePickerInput(session=session, inputId='dsTransCols', selected=character(0))
       showNotification(type='message', "Transformation applied.")
     } else showNotification(type='warning', "Confirmation required!")
@@ -892,10 +899,10 @@ serveDiffsom <- function(ws, ds, input, output, session) {
       filt <- ds$clust[ds$map$mapping[,1]] %in% input$dsGateClusters
       nds <- list(
         files=ds$files,
-        data=ds$data[filt,],
+        data=ds$data[filt,,drop=F],
         cellFile=ds$cellFile[filt],
-        prettyColnames=ds$prettyColnames,
-        colsToUse=ds$colsToUse)
+        prettyColnames=ds$prettyColnames
+      )
 
       saveDataset(ws, input$dsGateNewName, nds)
       showNotification(type='message', "New dataset created.")
@@ -911,67 +918,52 @@ serveDiffsom <- function(ws, ds, input, output, session) {
   })
 
   shinyFileSave(input, "dsExportPops", roots=getForeignRoots())
-  shinyFileSave(input, "dsExportDSMap", roots=getForeignRoots())
+  shinyFileSave(input, "dsExportDSFull", roots=getForeignRoots())
+  shinyFileSave(input, "dsExportDSNoData", roots=getForeignRoots())
   shinyFileSave(input, "dsExportFCS", roots=getForeignRoots())
   shinyFileSave(input, "dsExportCSV", roots=getForeignRoots())
 
   observeEvent(input$dsExportPops, {
     outpath <- parseSavePath(getForeignRoots(), input$dsExportPops)
     if(dim(outpath)[1]==1) {
-      d <- table(data.frame(File=ds$files[ds$cellFile], Annotation=ds$annotation[ds$clust[ds$map$mapping[,1]]]))
+      d <- dsExportPopSizes(ds)
       write.csv(d, outpath$datapath)
       showNotification(type='message', "Population export CSV saved.")
     }
   })
 
-  observeEvent(input$dsExportDSMap, {
-    outpath <- parseSavePath(getForeignRoots(), input$dsExportDSMap)
+  observeEvent(input$dsExportDSFull, {
+    outpath <- parseSavePath(getForeignRoots(), input$dsExportDSFull)
     if(dim(outpath)[1]==1) {
-      map <- ds$map
+      dso <- dsGetDataset(ds)
 
-      map$importance=rep(1,length(ds$colsToUse))
-      map$colsUsed <- findColIds(ds$colsToUse, ds$prettyColnames)
-      map$nclust <- nlevels(factor(ds$clust))
-      map$clust <- as.numeric(factor(ds$clust))
-      map$clust[is.na(map$clust)] <- 0
+      saveRDS(dso, outpath$datapath)
+      showNotification(type='message', "Dataset exported.")
+    }
+  })
 
-      saveRDS(map, outpath$datapath)
-      showNotification(type='message', "DiffSOM map saved.")
+  observeEvent(input$dsExportDSNoData, {
+    outpath <- parseSavePath(getForeignRoots(), input$dsExportDSNoData)
+    if(dim(outpath)[1]==1) {
+      dso <- dsGetDataset(ds)
+
+      dso$files <- NULL
+      dso$prettyColnames <- NULL
+      dso$data <- NULL
+      dso$cellFile <- NULL
+
+      dso$map$mapping <- NULL
+      dso$e <- NULL
+
+      saveRDS(dso, outpath$datapath)
+      showNotification(type='message', "Dataset exported.")
     }
   })
 
   observeEvent(input$dsExportFCS, {
     outpath <- parseSavePath(getForeignRoots(), input$dsExportFCS)
     if(dim(outpath)[1]==1) {
-      df <- data.frame(ds$data, CellFile=ds$cellFile)
-      descs <- c(ds$prettyColnames, "File ID")
-
-      if(!is.null(ds$embed)) {
-        df <- cbind(df,
-          EmbedSOM1=ds$embed[,1],
-          EmbedSOM2=ds$embed[,2]
-        )
-        descs <- c(descs, 'EmbedSOM 1', 'EmbedSOM 2')
-      }
-
-      if(!is.null(ds$map)) {
-        df <- cbind(df,
-          SOM1=1+((ds$map$mapping[,1]-1) %% ds$xdim),
-          SOM2=1+as.integer((ds$map$mapping[,1]-1) / ds$xdim)
-        )
-        descs <- c(descs, 'SOM vertex 1', 'SOM vertex 2')
-      }
-
-      if(!is.null(ds$clust)) {
-        cl <- as.numeric(factor(ds$clust[ds$map$mapping[,1]]))
-        cl[is.na(cl)] <- 0
-        df <- cbind(df, Cluster=cl)
-        descs <- c(descs, 'Population ID')
-      }
-
-      ff <- new('flowFrame', exprs=as.matrix(df))
-      ff@parameters@data[,'desc'] <- descs #magic!!
-      flowCore::write.FCS(ff, outpath$datapath)
+      flowCore::write.FCS(dsExportFlowFrame(ds), outpath$datapath)
       showNotification(type='message', "FCS file exported")
     }
   })
@@ -979,28 +971,7 @@ serveDiffsom <- function(ws, ds, input, output, session) {
   observeEvent(input$dsExportCSV, {
     outpath <- parseSavePath(getForeignRoots(), input$dsExportCSV)
     if(dim(outpath)[1]==1) {
-      df <- data.frame(ds$data, CellFile=ds$cellFile)
-      colnames(df)[seq_len(length(ds$prettyColnames))] <- ds$prettyColnames
-
-      if(!is.null(ds$embed))
-        df <- cbind(df,
-          EmbedSOM1=ds$embed[,1],
-          EmbedSOM2=ds$embed[,2]
-        )
-
-      if(!is.null(ds$map))
-        df <- cbind(df,
-          SOM1=1+((ds$map$mapping[,1]-1) %% ds$xdim),
-          SOM2=1+as.integer((ds$map$mapping[,1]-1) / ds$xdim)
-        )
-
-      if(!is.null(ds$clust)) {
-        cl <- as.numeric(factor(ds$clust[ds$map$mapping[,1]]))
-        df <- cbind(df, ClusterKey=cl)
-        if(!is.null(ds$annotation))
-          df <- cbind(df, Population=ds$annotation[cl])
-      }
-
+      df <- dsExportDF(ds)
       write.csv(df, outpath$datapath)
       showNotification(type='message', "CSV file exported")
     }

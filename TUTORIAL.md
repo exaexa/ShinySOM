@@ -196,7 +196,7 @@ TODOXXXXXXX Export the datasets from the GUI.
 > cleaningA <- readRDS('clean.shinysom')
 > populationsA <- readRDS('pops.shinysom')
 > a <- Process(LoadCells('21-10-15_Tube_028.fcs'), cleaningA)
-> PopulationList(a)
+> PopulationKeys(a)
 TODOXXXXXXXXXX
 ```
 

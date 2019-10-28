@@ -3,8 +3,8 @@ TRANSFORM_LIST <- list(
   none=list(
     name="No transformation",
     renderParams=function(input) div(),
-    check=function(d, input) TRUE,
-    trans=function(d, input) d
+    gatherParams=function(input) list(),
+    trans=function(d, p) d
   ),
   logicle=list(
     name="Logicle",
@@ -14,13 +14,13 @@ TRANSFORM_LIST <- list(
       sliderInput('dsTransLogicleM', "M (output range)", value=persistentP(input, 'dsTransLogicleM', 4.5), step=0.1, min=0.1, max=10),
       sliderInput('dsTransLogicleA', "A (additional negative range)", value=persistentP(input, 'dsTransLogicleA', 0), step=0.1, min=0, max=1.5)
     ),
-    check=function(d, input) TRUE,
-    trans=function(d, input)
-      flowCore::logicleTransform(
-        w=input$dsTransLogicleW,
-        t=as.integer(2^input$dsTransLogicleT),
-        m=input$dsTransLogicleM,
-        a=input$dsTransLogicleA)(d)
+    gatherParams=function(input) list(
+      w=input$dsTransLogicleW,
+      t=input$dsTransLogicleT,
+      m=input$dsTransLogicleM,
+      a=input$dsTransLogicleA),
+    trans=function(d, p)
+      flowCore::logicleTransform(w=p$w, t=as.integer(2^p$t), m=p$m, a=p$a)(d)
   ),
   asinh=list(
     name="Hyperbolic arcSin",
@@ -28,8 +28,10 @@ TRANSFORM_LIST <- list(
       sliderInput('dsTransPAsinhCq', "Center (quantile)", value=persistentP(input, 'dsTransPAsinhCq', 0.05), step=0.01, min=0, max=1),
       sliderInput('dsTransPAsinhS', "log-scale", value=persistentP(input, 'dsTransPAsinhS', 0), step=.5, min=-20, max=20)
     ),
-    check=function(d, input) TRUE,
-    trans=function(d, input) asinh((d-quantile(d, input$dsTransPAsinhCq))*exp(input$dsTransPAsinhS))
+    gatherParams=function(input) list(
+      cq=input$dsTransPAsinhCq,
+      s=input$dsTransPAsinhS),
+    trans=function(d, p) asinh((d-quantile(d, p$cq))*exp(p$s))
   ),
   biexp=list(
     name="Biexponential",
@@ -40,14 +42,19 @@ TRANSFORM_LIST <- list(
       sliderInput('dsTransBiexC', 'Negative scale (C)', value=persistentP(input, 'dsTransBiexC', 0.5), step=0.1, min=0, max=20),
       sliderInput('dsTransBiexD', 'Negative compresion (D)', value=persistentP(input, 'dsTransBiexD', 1), step=0.1, min=0, max=20)
     ),
-    check=function(d,input) TRUE,
-    trans=function(d,input)
+    gatherParams=function(input) list(
+      w=input$dsTransBiexW,
+      a=input$dsTransBiexA,
+      b=input$dsTransBiexB,
+      c=input$dsTransBiexC,
+      d=input$dsTransBiexD),
+    trans=function(d,p)
       flowCore::biexponentialTransform(
-        w=input$dsTransBiexW,
-        a=input$dsTransBiexA,
-        b=input$dsTransBiexB,
-        c=input$dsTransBiexC,
-        d=input$dsTransBiexD)(d)
+        w=p$w,
+        a=p$a,
+        b=p$b,
+        c=p$c,
+        d=p$d)(d)
   ),
   log=list(
     name="Logarithm+P",
@@ -55,10 +62,12 @@ TRANSFORM_LIST <- list(
       numericInput('dsTransPLogP', "P", value=persistentP(input, 'dsTransPLogP', 0), step=0.01),
       numericInput('dsTransPLogC', "Negative clamp (logscale)", value=persistentP(input, 'dsTransPLogC', 1), step=0.1)
     ),
-    check=function(d, input) TRUE,
-    trans=function(d, input) {
-      v <- d+input$dsTransPLogP
-      threshold <- exp(-input$dsTransPLogC)
+    gatherParams=function(input) list(
+      c=input$dsTransPLogC,
+      p=input$dsTransPLogP),
+    trans=function(d, p) {
+      v <- d+p$p
+      threshold <- exp(-p$c)
       v[v<threshold] <- threshold
       log(v)
     }
@@ -69,11 +78,13 @@ TRANSFORM_LIST <- list(
       sliderInput('dsTransP2LogCq', "Center (quantile)", value=persistentP(input, 'dsTransP2LogCq', 0.05), step=0.01, min=0, max=1),
       sliderInput('dsTransP2LogS', "Log-scale", value=persistentP(input, 'dsTransP2LogS', 0), step=1, min=-20, max=20)
     ),
-    check=function(d, input) TRUE,
-    trans=function(d, input) {
-      center <- quantile(d, input$dsTransP2LogCq)
+    gatherParams=function(input) list(
+      cq=input$dsTransP2LogCq,
+      s=input$dsTransP2LogS),
+    trans=function(d, p) {
+      center <- quantile(d, p$cq)
       log(1+
-        abs(d-center)*exp(input$dsTransP2LogS)
+        abs(d-center)*exp(p$s)
       )*sign(d-center)
     }
   ),
@@ -84,15 +95,15 @@ TRANSFORM_LIST <- list(
         choices=list(`Uniform`='unif', `Normal`='norm', `Exponential`='exp', `Logit`='logit'),
         selected=persistentP(input, 'dsTransPQuT', 'unif')
       ),
-    check=function(d, input) TRUE,
-    trans=function(d, input) {
+    gatherParams=function(input) list(type=input$dsTransPQuT),
+    trans=function(d, p) {
       r <- rank(d, ties.method='average')
       r <- r/(length(r)+1)
-      if(input$dsTransPQuT=='norm')
+      if(p$type=='norm')
         r <- qnorm(r)
-      else if(input$dsTransPQuT=='exp')
+      else if(p$type=='exp')
         r <- qexp(r)
-      else if(input$dsTransPQuT=='logit')
+      else if(p$type=='logit')
         r <- -log(1/r - 1)
       r
     }
@@ -100,7 +111,7 @@ TRANSFORM_LIST <- list(
 )
 
 renderTransformParams <- function(input, transType) {
-  if(is.null(TRANSFORM_LIST[[transType]])) p("Could not find the transform")
+  if(is.null(TRANSFORM_LIST[[transType]])) p("N/A")
   else TRANSFORM_LIST[[transType]]$renderParams(input)
 }
 
@@ -110,28 +121,38 @@ transformDoScale <- function(d) {
   else d*0
 }
 
-transformedDsData <- function(ds, input) {
-  cols <- findColIds(input$dsTransCols, ds$prettyColnames)
-  transType <- input$dsTransTrType
-  if(is.null(TRANSFORM_LIST[[transType]])) stop("Could not find the transform")
-  trans <- TRANSFORM_LIST[[transType]]
-
-  #check the cols to provide a reasonable error message on math errors
-  for(i in cols)
-    trans$check(ds$data[,i], input)
+transformFind <- function(n) {
+  if(is.null(TRANSFORM_LIST[[n]]))
+    stop("Non-existing transform function specified")
+  TRANSFORM_LIST[[n]]
+}
+  
+transformedDsDataByDesc <- function(ds, desc) {
+  cols <- findColIds(desc$cols, ds$prettyColnames)
+  trans <- transformFind(desc$transform)
 
   ndata <- ds$data
+  for (i in cols)
+    ndata[,i] <- trans$trans(ndata[,i], desc$params)
 
-  for(i in cols)
-    ndata[,i] <- trans$trans(ndata[,i], input)
-
-  if(input$dsTransNormalize)
+  if(desc$normalize)
     for(i in cols)
       ndata[,i] <- transformDoScale(ndata[,i])
 
-  if(input$dsTransDoImportance)
+  if(!is.null(desc$importance))
     for(i in cols)
-      ndata[,i] <- input$dsTransImportance*ndata[,i]
+      ndata[,i] <- desc$importance*ndata[,i]
 
-  ndata
+  list(data=ndata, desc=desc)
+}
+
+transformedDsData <- function(ds, input) {
+  desc <- list(
+    cols=input$dsTransCols,
+    transform=input$dsTransTrType,
+    params=transformFind(input$dsTransTrType)$gatherParams(input),
+    normalize=input$dsTransNormalize,
+    importance=if(input$dsTransDoImportance) input$dsTransImportance else NULL)
+
+  transformedDsDataByDesc(ds, desc)
 }

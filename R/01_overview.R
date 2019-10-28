@@ -114,7 +114,7 @@ overviewServe <- function(element, id='', ds, input, output, previewTransform=F,
   output[[my('plotDsOverview')]] <- renderPlot({
     plotOverview(
       ds,
-      if(previewTransform) transformedDsData(ds, input) else ds$data,
+      if(previewTransform) transformedDsData(ds, input)$data else ds$data,
       input[[my('dsOverviewMarkersH')]],
       input[[my('dsOverviewMarkersV')]],
       input[[my('dsOverviewColor')]],

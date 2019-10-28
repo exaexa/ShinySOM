@@ -125,37 +125,49 @@ dsCreatePrettyColnames <- function(loaded) {
 }
 
 #
-# Actual loading function that reads the files and puts the dataset into the workspace
+# Loading function wrapper (used also in API)
 #
 
-dsCreateDoLoad <- function(name, fs, subsample, noComp, nCells, colsToLoad, prettyCols, workspace) {
+dsCreateDoLoadInternal <- function(fns, subsample, noComp, nCells, colsToLoad, progress=FALSE) {
+  data <- loadFCSAggregate(fns, if(subsample)nCells else NULL, noComp, progress)
+
+  ds <- list()
+
+  ds$files <- gsub('\\.fcs$','', gsub('.*/','',fns))
+  ds$cellFile <- data$cellFile
+  ds$prettyColnames <- dsCreatePrettyColnames(data)
+
+  if(is.null(colsToLoad)) colsToLoad <- ds$prettyColnames
+
+  colSel <- findColIds(colsToLoad, ds$prettyColnames)
+  ds$data <- data$exprs[,colSel,drop=F]
+  ds$prettyColnames <- ds$prettyColnames[colSel]
+
+  # remove possible NaNs, NAs and other sources of trouble
+  if(progress) setProgress('Cleaning...', value=length(fns)+1)
+  ds$data[!is.finite(ds$data)] <- NA
+  filter <- apply(!is.na(ds$data), 1, all)
+  ds$data <- ds$data[filter,,drop=F]
+  ds$cellFile <- ds$cellFile[filter]
+
+  colnames(ds$data) <- ds$prettyColnames
+
+  ds
+}
+
+#
+# Actual loading function that reads the files and puts the dataset into the
+# workspace
+#
+
+dsCreateDoLoad <- function(name, fs, subsample, noComp, nCells, colsToLoad, workspace) {
   if(!datasetNameValid(name)) stop('Invalid dataset name')
   if(datasetExists(workspace, name)) stop('Dataset of same name already exists')
 
   fns <- dsCreateFiles(fs)
 
   withProgress(message='Aggregating FCS files', value=1, min=1, max=length(fns)+1, {
-    data <- loadFCSAggregate(fns, if(subsample)nCells else NULL, noComp)
-
-    ds <- list()
-
-    ds$files <- gsub('\\.fcs$','', gsub('.*/','',fns))
-    ds$cellFile <- data$cellFile
-    ds$prettyColnames <- dsCreatePrettyColnames(data)
-
-    colSel <- findColIds(colsToLoad, ds$prettyColnames)
-    ds$data <- data$exprs[,colSel]
-    ds$prettyColnames <- ds$prettyColnames[colSel]
-
-    # remove possible NaNs, NAs and other sources of trouble
-    setProgress('Cleaning...', value=length(fns)+1)
-    ds$data[!is.finite(ds$data)] <- NA
-    filter <- apply(!is.na(ds$data), 1, all)
-    ds$data <- ds$data[filter,]
-    ds$cellFile <- ds$cellFile[filter]
-
-    colnames(ds$data) <- ds$prettyColnames
-
+    ds <- dsCreateDoLoadInternal(fs, subsample, noComp, nCells, colsToLoad, progress=TRUE)
     setProgress('Creating dataset', value=length(fns)+1)
     saveDataset(workspace, name, ds)
   })
@@ -305,7 +317,6 @@ serveDsCreate <- function(workspace, input, output, session) {
             input$dsCreateParNoComp,
             input$dsCreateSubsample,
             input$dsCreateLoadCols,
-            prettyCols(),
             workspace)
           showNotification(type='message',
             'Dataset created.'

@@ -7,16 +7,16 @@ loadFCSColnames <- function(file) {
   )
 }
 
-loadFCSTryCompensate <- function(ff, progress, fn) {
+loadFCSTryCompensate <- function(ff, progressVal, fn, progress=F) {
   # FlowSOM-like finding of any possible compensation matrix
   # (base code originated in FlowSOM, (C) 2015-2019 Sofie Van Gassen et al.)
   if(!is.null(ff@description$SPILL)){
-    setProgress('Applying stored compensation...', value=progress)
+    if(progress) setProgress('Applying stored compensation...', value=progressVal)
     return(flowCore::compensate(ff, ff@description$SPILL))
   }
 
   if (!is.null(ff@description$`$SPILLOVER`)){
-    setProgress('Applying stored compensation...', value=progress)
+    if(progress) setProgress('Applying stored compensation...', value=progressVal)
     if(class(ff@description$`$SPILLOVER`)=="matrix"){
       spillover <- ff@description$`$SPILLOVER`
       ff@description$SPILL <- spillover
@@ -56,7 +56,7 @@ loadFCSTryCompensate <- function(ff, progress, fn) {
   ff # didn't find anything
 }
 
-loadFCSAggregate <- function(fileNames, cells, noComp) {
+loadFCSAggregate <- function(fileNames, cells, noComp, progress=F) {
   nf <- length(fileNames)
   cf <- ceiling(cells/nf)
 
@@ -64,7 +64,7 @@ loadFCSAggregate <- function(fileNames, cells, noComp) {
   files <- c()
 
   for(i in seq_len(nf)) {
-    setProgress('Loading FCS file...', value=i)
+    if(progress) setProgress('Loading FCS file...', value=i)
     ff <- flowCore::read.FCS(fileNames[i])
 
     ns <- min(nrow(ff), cf)
@@ -73,9 +73,9 @@ loadFCSAggregate <- function(fileNames, cells, noComp) {
     files <- c(files, rep(i, ns))
 
     if(!noComp)
-      ff <- loadFCSTryCompensate(ff, i, fileNames[i])
+      ff <- loadFCSTryCompensate(ff, i, fileNames[i], progress)
 
-    setProgress('Aggregating...', value=i)
+    if(progress) setProgress('Aggregating...', value=i)
     if(is.null(ffs))
       ffs <- ff
     else
