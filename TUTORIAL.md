@@ -177,32 +177,155 @@ Batch API of ShinySOM is designed for alleviating this problem: You can prepare 
 
 ## Exporting and loading the analysis
 
+The dataset objects exported from the ShinySOM **Export data** tab are useful both as sources of actual cell data, and as sources of metadata about analysis. The analysis can be reduced to metadata, but still carries full information necessary for reproducing the workflow -- the reduced datasets are obtained using **Export analysis RDS** button. Main advantage of exporting just the metadata is the size of resulting data, which is reduced to several kilobytes.
+
+For demonstration, we have exported the analysis files from both datasets we have created before, using the **Export analysis RDS button** to create files `step1.shinysom` and `step2.shinysom`. After that, we have transferred these files to the batch processing environment.
+
+The dataset files are formatted as standard RDS and can be directly loaded in R:
+
 ```r
-a <- readRDS('step1.shinysom')
+step1 <- readRDS('step1.shinysom')
+step2 <- readRDS('step2.shinysom')
 ```
+
+The loaded structures contain some interesting data about the analysis, e.g. the list of all transformations applied to the data is available in `step1$transforms` and the FlowSOM-compatible map object for the final data can be obtained as `step2$map`. While this may be already useful, ShinySOM provides own functions that simplify the batch processing.
 
 ## Available functions
 
-- LoadCells
-- Process
-- ExportDF
-- Dissect
+- Function `LoadCells` creates dataset objects from FCS files, in a manner
+  similar to `AggregateFlowFrames` from FlowSOM.
+- Function `Process` applies the stored analysis to a data file.
+- Functions `ExportDF`, `ExportFlowFrame` and `PopulationSizes` can be used to
+  export data and statistics from the processed datasets (in a similar manner
+  as in **Export data** tab),
+- Function `Dissect` can be used to reduce the datasets to annotated subsets,
+  just like in **Dissection** tab. To help that purpose, function
+  `PopulationKeys` returns all annotated subsets available in the dataset.
 
 ## Batch-processing the tutorial dataset
 
-TODOXXXXXXX Export the datasets from the GUI.
+Finally, batch processing the original, non-subsampled datasets is done by reading the whole FCS files using `LoadCells` functions, applying the analysis and dissection steps using the `Process` and `Dissect` functions.
+
+First, we read the analysis objects and full 2 million cells of FCS contents:
 
 ```r
-> cleaningA <- readRDS('clean.shinysom')
-> populationsA <- readRDS('pops.shinysom')
-> a <- Process(LoadCells('21-10-15_Tube_028.fcs'), cleaningA)
-> PopulationKeys(a)
-TODOXXXXXXXXXX
+step1 <- readRDS('step1.shinysom')
+step2 <- readRDS('step2.shinysom')
+dataset <- LoadCells(
+ c('21-10-15_Tube_028.fcs',
+   '21-10-15_Tube_030.fcs',
+   '21-10-15_Tube_031.fcs',
+   '21-10-15_Tube_032.fcs'))
 ```
 
+After the cells are loaded, we can apply the analysis and look at the result:
+
 ```r
-> a <- Process(Dissect(a, "Single cells"), populationsB)
-> df <- ExportDF(a)
-> print(table(a$Population))
-TODOXXXXXXXXXXXXXX
+dataset <- Process(dataset, step1)
+PopulationKeys(dataset)
 ```
+
+After the processing (mapping and embedding) is done, the later command should print out the keys for the available populations:
+```
+             2              b              d              l 
+    "Doublets"       "Debris"   "Dead cells" "Single cells" 
+```
+
+From that, we want to reduce the dataset to the subset marker with `l` key, which contains the live singlets:
+
+```r
+dataset <- Dissect(dataset, c('l'))
+```
+
+(Note that more keys can be specified.)
+
+The reduced dataset is ready for being processed by the second step:
+
+```r
+dataset <- Process(dataset, step2)
+```
+
+## Using the results
+
+### Obtaining statistics
+After the results are ready, we can print out some population statistics using e.g. `PopulationSizes(dataset)`:
+
+```
+                   Annotation
+File                B cells Dendritic cells Macrophages Neutrophils NK cells NK T cells T cells   <NA>
+  21-10-15_Tube_028  207493           11006       10279        3225     7177       1425   78099   7778
+  21-10-15_Tube_030  173869            8783       11310        3368     3706       1246   92268   6548
+  21-10-15_Tube_031  198724            9642        7469        3025     6366       1472  107295   6879
+  21-10-15_Tube_032  218421            9904       11307        3017     7789       1673   75288   5373
+```
+
+### Processed single-cell data
+For various purposes, it may also be beneficial to export the data. `ExportDF(dataset)` exports a large data frame that contains a lot of information about the dataset:
+
+```
+> ExportDF(dataset)[1:5,]
+      FSC-A FSC-H    FSC-W     SSC-A  SSC-H    SSC-W    FITC-A
+1 104919.57 91624 75045.94  45042.46  41000 71997.62  47.96475
+2 104539.68 72977 93880.44 129815.17 104981 81039.11 145.31468
+3  92914.92 82279 74007.61  23377.52  20195 75863.80 -49.92402
+4  21442.05 20042 70114.07  36617.53  34942 68678.57 174.06121
+5  79960.23 74381 70451.77  34708.58  33134 68650.38  34.66024
+  MHCII#PerCp-Cy5-5 (PerCP-Cy5-5-A) CD49b#eFluor450 (Pacific Blue-A) AmCyan-A
+1                          2.879356                        1.1410280 1.204577
+2                          3.092070                        1.3442259 1.484064
+3                          1.249903                        1.1925033 1.100682
+4                          2.155605                        0.5509763 1.563597
+5                          1.115314                        1.1847186 1.047064
+  CD11b#BV605 (BV605-A) CD64#BV711 (BV711-A) FcERI#BV786 (BV786-A)
+1             2.4137815            1.3216869             0.9004143
+2             1.5304053            1.1014624             1.1421245
+3             0.7284499            1.0002436             0.8207423
+4             1.7426230            2.0427317             2.2640543
+5             1.2014615            0.9959151             0.9562646
+  CD161#APC (APC-A) Ly-6G#AF700 (Alexa Fluor 700-A) L/D#eFluor780 (APC-Cy7-A)
+1         1.0150891                       1.1384442                 0.9560442
+2         1.0533812                       0.9488114                 1.9926031
+3         0.8836237                       0.8330915                 1.1454782
+4         0.9893947                       0.9126866                 0.9558701
+5         0.8401625                       0.7957797                 1.0021014
+  CD3#PE (PE-A) CD19#PE-Cy5 (PE-Cy5-A) CD11c#PE-Cy7 (PE-Cy7-A)   Time CellFile
+1     1.6601674              2.0630345                3.456712 1254.5        1
+2     1.7487420              1.5789861                3.840369 5520.4        1
+3     0.7130027              2.7802491                1.011603 1846.4        1
+4     1.2357820              0.7009728                1.572579 2042.0        1
+5     2.8881256              0.6032841                1.165158  287.9        1
+  EmbedSOM1 EmbedSOM2 SOM1 SOM2 ClusterKey      Population
+1  8.383144 22.866970    9   24          2 Dendritic cells
+2  8.215800 21.121189    8   21          2 Dendritic cells
+3 19.121624  9.981588   20    9          1         B cells
+4  3.686083 22.917351    4   24          5     Macrophages
+5 19.597309 18.423843   20   19          7         T cells
+```
+
+### Exporting a FCS file
+
+Similarly, one can save this data to an FCS file and analyze it in different software:
+```r
+flowCore::write.FCS(ExportFlowFrame(dataset), "exported_data.fcs")
+```
+
+### Plotting the data
+
+Raw data available in the dataset can be used for plotting high-quality graphics suitable for publishing. Importantly, the data frame obtained from `ExportDF` can be directly used in `ggplot2`:
+
+```r
+library(ggplot2)
+ggsave('plot.png', units='in', width=4, height=4,
+ggplot(ExportDF(dataset)) +
+  geom_point(size=.1, shape=16, alpha=.1,
+             aes(EmbedSOM1, EmbedSOM2, color=`MHCII#PerCp-Cy5-5 (PerCP-Cy5-5-A)`)) +
+  EmbedSOM::ExpressionGradient(guide=F) +
+  xlim(-3,26) + ylim(-3,26) +
+  ggtitle("MHCII expression") +
+  theme_classic()
+)
+```
+
+Above code may produce the following plot:
+
+<img src="media/tutorial-plot.png?raw=true" alt="Result from ggplot" width="50%">
