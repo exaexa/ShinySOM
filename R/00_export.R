@@ -3,10 +3,10 @@ dsExportDF <- function(ds) {
   df <- data.frame(ds$data, CellFile=ds$cellFile)
   colnames(df)[seq_len(length(ds$prettyColnames))] <- ds$prettyColnames
 
-  if(!is.null(ds$embed))
+  if(!is.null(ds$e))
     df <- cbind(df,
-      EmbedSOM1=ds$embed[,1],
-      EmbedSOM2=ds$embed[,2]
+      EmbedSOM1=ds$e[,1],
+      EmbedSOM2=ds$e[,2]
     )
 
   if(!is.null(ds$map))
@@ -29,10 +29,10 @@ dsExportFlowFrame <- function(ds) {
   df <- data.frame(ds$data, CellFile=ds$cellFile)
   descs <- c(ds$prettyColnames, "File ID")
 
-  if(!is.null(ds$embed)) {
+  if(!is.null(ds$e)) {
     df <- cbind(df,
-      EmbedSOM1=ds$embed[,1],
-      EmbedSOM2=ds$embed[,2]
+      EmbedSOM1=ds$e[,1],
+      EmbedSOM2=ds$e[,2]
     )
     descs <- c(descs, 'EmbedSOM 1', 'EmbedSOM 2')
   }
