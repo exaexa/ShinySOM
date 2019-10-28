@@ -248,7 +248,7 @@ dataset <- Process(dataset, step2)
 ## Using the results
 
 ### Obtaining statistics
-After the results are ready, we can print out some population statistics using e.g. `PopulationSizes(dataset)`:
+After the results are ready, we can obtain the population statistics using e.g. `PopulationSizes(dataset)`:
 
 ```
                    Annotation
@@ -258,6 +258,8 @@ File                B cells Dendritic cells Macrophages Neutrophils NK cells NK 
   21-10-15_Tube_031  198724            9642        7469        3025     6366       1472  107295   6879
   21-10-15_Tube_032  218421            9904       11307        3017     7789       1673   75288   5373
 ```
+
+The column marked `<NA>` represents the cells that were not assigned any annotation, ie. those that were left out as "gray" in the clustering interface.
 
 ### Processed single-cell data
 For various purposes, it may also be beneficial to export the data. `ExportDF(dataset)` exports a large data frame that contains a lot of information about the dataset:
