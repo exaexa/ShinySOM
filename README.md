@@ -87,6 +87,10 @@ No, ShinySOM focuses on multidimensional analysis of the data, compensation and 
 
 Analysis results are exported to the server side of the application. You may download it from the data transfer interface, accessible by clicking the "Upload/download data" button in the top bar.
 
+### I found a bug, what to do now?
+
+If ShinySOM does something unexpected or crashes (Shiny application crashes are presented by sudden graying of the screen), feel free to use the [GitLab issue tracker](https://gitlab.com/exaexa/ShinySOM/issues) to report what went wrong. Please include a reproducible description of how to trigger the problem in the report, including the OS used to run ShinySOM and the browser used for viewing the interface. Properly reported bugs may be fixed in several hours.
+
 ### Is ShinySOM suitable for producing graphics for publication?
 
 Not directly, all visualisation in ShinySOM is optimized for on-screen viewing. You can get high-quality prints of any produced data using the standard R tools (e.g. `ggplot`); an example of that is available in [the tutorial](TUTORIAL.md).
