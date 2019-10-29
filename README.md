@@ -87,6 +87,10 @@ No, ShinySOM focuses on multidimensional analysis of the data, compensation and 
 
 Analysis results are exported to the server side of the application. You may download it from the data transfer interface, accessible by clicking the "Upload/download data" button in the top bar.
 
+### Is ShinySOM suitable for producing graphics for publication?
+
+Not directly, all visualisation in ShinySOM is optimized for on-screen viewing. You can get high-quality prints of any produced data using the standard R tools (e.g. `ggplot`); an example of that is available in [the tutorial](TUTORIAL.md).
+
 ### How to turn on the SIMD support?
 
 You need EmbedSOM installation compiled with the matching compiler flags; ShinySOM will automatically use the result. See [EmbedSOM documentation](https://github.com/exaexa/EmbedSOM) for details. The expected speedup of SOM building and embedding ranges between 3x and 20x, usually around 5x.
