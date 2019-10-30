@@ -3,6 +3,12 @@
 #' 
 #' Opens several files and concatenates their contents into a dataset object.
 #'
+#' @param files Character vector of file names
+#' @param nCells Maximum integer number of cells to load, or NULL (default) to load all available cells
+#' @param noComp Avoid using the compensation matrices stored in files (default FALSE)
+#' @param colsToLoad Limit loading to specified character vector of columns
+#' @return The newly created dataset
+#'
 #' @export
 LoadCells <- function(files, nCells=NULL, noComp=F, colsToLoad=NULL) {
   dsCreateDoLoadInternal(files, !is.null(nCells), noComp, nCells, colsToLoad)
@@ -12,8 +18,9 @@ LoadCells <- function(files, nCells=NULL, noComp=F, colsToLoad=NULL) {
 #'
 #' Batch-process the cells according to the analysis saved in ds
 #'
-#' @param cells Loaded cell object, e.g. as received from 'Process'
+#' @param nds Loaded cell object, e.g. as received from 'LoadCells'
 #' @param a Loaded analysis object, e.g. as exported from ShinySOM GUI and loaded using 'readRDS'
+#' @return The processed dataset
 #'
 #' @export
 Process <- function(nds, a) {
@@ -58,8 +65,8 @@ Process <- function(nds, a) {
 #'
 #' Convert a dataset object to a data frame
 #'
-#' @param ds the dataset to be converted
-#' @return data.frame
+#' @param ds The dataset to be converted
+#' @return A data frame
 #'
 #' @export
 ExportDF <- function(ds) {
@@ -68,9 +75,12 @@ ExportDF <- function(ds) {
 
 #' ExportFlowFrame
 #'
-#' Save the available dataset information in a FCS file
+#' Save the available dataset information in a flowFrame.
+#' You can save the resulting flowFrame to FCS file using e.g.
+#' 'flowCore::write.FCS'.
 #'
-#' @param ds the dataset
+#' @param ds The dataset to be exported
+#' @return A new flowFrame object
 #'
 #' @export
 ExportFlowFrame <- function(ds) {
@@ -81,10 +91,11 @@ ExportFlowFrame <- function(ds) {
 #'
 #' Reduce the dataset to subsets, as specified by the selected populations
 #'
-#' @param ds the dataset to be reduced
-#' @param pops population keys to be dissected (the resulting dataset will only
+#' @param ds The original dataset to be reduced
+#' @param pops Population keys (as character vector) to be dissected out of the
+#'             original dataset (the resulting dataset will only
 #'             contain populations specified here)
-#' @return the reduced dataset object
+#' @return The reduced dataset object
 #'
 #' @export
 Dissect <- function(ds, pops) {
@@ -104,6 +115,9 @@ Dissect <- function(ds, pops) {
 #'
 #' Get available population names from a dataset
 #'
+#' @param ds The dataset to be processed
+#' @return Named character vector with population names and keys
+#'
 #' @export
 PopulationKeys <- function(ds) {
   if(is.null(ds$annotation)) character(0)
@@ -113,6 +127,9 @@ PopulationKeys <- function(ds) {
 #' PopulationSizes
 #'
 #' Get cell counts in annotated populations in a dataset
+#'
+#' @param ds The dataset to be processed
+#' @return Table with all annotated population sizes
 #'
 #' @export
 PopulationSizes <- function(ds) {
