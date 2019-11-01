@@ -6,6 +6,12 @@
 \usage{
 PopulationKeys(ds)
 }
+\arguments{
+\item{ds}{The dataset to be processed}
+}
+\value{
+Named character vector with population names and keys
+}
 \description{
 Get available population names from a dataset
 }

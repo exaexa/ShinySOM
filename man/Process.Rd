@@ -7,9 +7,12 @@
 Process(nds, a)
 }
 \arguments{
-\item{a}{Loaded analysis object, e.g. as exported from ShinySOM GUI and loaded using 'readRDS'}
+\item{nds}{Loaded cell object, e.g. as received from 'LoadCells'}
 
-\item{cells}{Loaded cell object, e.g. as received from 'Process'}
+\item{a}{Loaded analysis object, e.g. as exported from ShinySOM GUI and loaded using 'readRDS'}
+}
+\value{
+The processed dataset
 }
 \description{
 Batch-process the cells according to the analysis saved in ds

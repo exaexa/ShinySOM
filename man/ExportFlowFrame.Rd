@@ -7,8 +7,13 @@
 ExportFlowFrame(ds)
 }
 \arguments{
-\item{ds}{the dataset}
+\item{ds}{The dataset to be exported}
+}
+\value{
+A new flowFrame object
 }
 \description{
-Save the available dataset information in a FCS file
+Save the available dataset information in a flowFrame.
+You can save the resulting flowFrame to FCS file using e.g.
+'flowCore::write.FCS'.
 }

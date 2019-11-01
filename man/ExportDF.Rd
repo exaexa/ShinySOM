@@ -7,10 +7,10 @@
 ExportDF(ds)
 }
 \arguments{
-\item{ds}{the dataset to be converted}
+\item{ds}{The dataset to be converted}
 }
 \value{
-data.frame
+A data frame
 }
 \description{
 Convert a dataset object to a data frame

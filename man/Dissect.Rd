@@ -7,13 +7,14 @@
 Dissect(ds, pops)
 }
 \arguments{
-\item{ds}{the dataset to be reduced}
+\item{ds}{The original dataset to be reduced}
 
-\item{pops}{population keys to be dissected (the resulting dataset will only
+\item{pops}{Population keys (as character vector) to be dissected out of the
+original dataset (the resulting dataset will only
 contain populations specified here)}
 }
 \value{
-the reduced dataset object
+The reduced dataset object
 }
 \description{
 Reduce the dataset to subsets, as specified by the selected populations

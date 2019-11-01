@@ -6,6 +6,18 @@
 \usage{
 LoadCells(files, nCells = NULL, noComp = F, colsToLoad = NULL)
 }
+\arguments{
+\item{files}{Character vector of file names}
+
+\item{nCells}{Maximum integer number of cells to load, or NULL (default) to load all available cells}
+
+\item{noComp}{Avoid using the compensation matrices stored in files (default FALSE)}
+
+\item{colsToLoad}{Limit loading to specified character vector of columns}
+}
+\value{
+The newly created dataset
+}
 \description{
 Opens several files and concatenates their contents into a dataset object.
 }

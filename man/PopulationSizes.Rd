@@ -6,6 +6,12 @@
 \usage{
 PopulationSizes(ds)
 }
+\arguments{
+\item{ds}{The dataset to be processed}
+}
+\value{
+Table with all annotated population sizes
+}
 \description{
 Get cell counts in annotated populations in a dataset
 }
