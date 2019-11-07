@@ -95,6 +95,12 @@ If ShinySOM does something unexpected or crashes (Shiny application crashes are 
 
 Not directly, all visualisation in ShinySOM is optimized for on-screen viewing. You can get high-quality prints of any produced data using the standard R tools (e.g. `ggplot`); an example of that is available in [the tutorial](TUTORIAL.md).
 
+### Is there any support for the more common embedding algorithms, like tSNE, UMAP or trimap?
+
+In the interactive environment, the used visualization&embedding method is required to be very fast in order to be useful. We currently use EmbedSOM, because it can deliver a good embedding in several seconds (moreover, the SOM computation is shared with clustering). On the contrary, tSNE and UMAP usually take several minutes even on relatively small datasets.
+
+Outside of ShinySOM, you may apply any dimensionality reduction algorithm to the data in an exported dataset. You can use e.g. the `ExportDF` function from the API to get the raw cell expression data in datasets, which can be used as input of tSNE or UMAP. (See the tutorial for more information on API use.)
+
 ### How to turn on the SIMD support?
 
 You need EmbedSOM installation compiled with the matching compiler flags; ShinySOM will automatically use the result. See [EmbedSOM documentation](https://github.com/exaexa/EmbedSOM) for details. The expected speedup of SOM building and embedding ranges between 3x and 20x, usually around 5x.
