@@ -93,7 +93,7 @@ If ShinySOM does something unexpected or crashes (Shiny application crashes are 
 
 ### Is ShinySOM suitable for producing graphics for publication?
 
-Not directly, all visualisation in ShinySOM is optimized for on-screen viewing. You can get high-quality prints of any produced data using the standard R tools (e.g. `ggplot`); an example of that is available in [the tutorial](TUTORIAL.md).
+Not directly -- all visualisations in ShinySOM are optimized for on-screen viewing only. You can get high-quality prints of any produced data using the standard R tools (e.g. `ggplot`); an example of that is available in [the tutorial](TUTORIAL.md).
 
 ### Where is the FlowSOM metaclustering and Consensus clustering?
 
