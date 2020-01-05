@@ -1,16 +1,20 @@
 
+formatPVal <- function(pv)
+  format(signif(pv, digits=2), scientific=F, drop0trailing=T)
+
 plotDsASig <- function(control, experiment, files, cellFile, e,
   gran, mapping, clust, annotation,
   pval, cex, alpha)
 {
   cl <- 1
 
-  pow <- log(pval)/log(.5)
+  pow <- log(.5,1-pval)
 
   if(gran=='SOM') cl <- mapping
   else if(gran=='Clusters') cl <- clust[mapping]
 
   cl <- factor(cl)
+  cllevs <- levels(cl)
   ncl <- nlevels(cl)
   cl <- as.integer(cl)
 
@@ -25,18 +29,21 @@ plotDsASig <- function(control, experiment, files, cellFile, e,
     probsE[i,] <- pad.zero(tabulate(cl[cellFile==expID[i]]),ncl)/sum(cellFile==expID[i])
 
 
-  suppressWarnings(p_less <- sapply(1:ncl, function(i)
-    (1-wilcox.test(
+  suppressWarnings(po_less <- sapply(1:ncl, function(i)
+    wilcox.test(
 			probsE[,i],
 			probsC[,i],
 			alternative='less',
-			paired=F)$p.value)^pow))
-  suppressWarnings(p_greater <- sapply(1:ncl, function(i)
-   (1-wilcox.test(
+			paired=F)$p.value))
+  suppressWarnings(po_greater <- sapply(1:ncl, function(i)
+   wilcox.test(
 			probsE[,i],
 			probsC[,i],
 			alternative='greater',
-			paired=F)$p.value)^pow))
+			paired=F)$p.value))
+
+  p_less <- (1-po_less)^pow
+  p_greater <- (1-po_greater)^pow
 
 	col.inconclusive <- rgb(.75, .75, .75, alpha/2)
 	col.greater <- rgb(1, .5, 0, alpha)
@@ -56,5 +63,38 @@ plotDsASig <- function(control, experiment, files, cellFile, e,
 
   par(mar=c(0,0,0,0))
   EmbedSOM::PlotEmbed(e[!is.na(cl),], col=colors, alpha=alpha, cex=cex, plotf=scattermoreplot, frame.plot=F)
+  for(i in 1:ncl) {
+    ai <- cllevs[i]
+    if(ai %in% names(annotation)) {
+      if(po_greater[i]<sqrt(pval))
+        annotation[ai] <- paste0(annotation[ai], '\nincrease p=', formatPVal(po_greater[i]))
+      if(po_less[i]<sqrt(pval))
+        annotation[ai] <- paste0(annotation[ai], '\ndecrease p=', formatPVal(po_less[i]))
+    }
+  }
   plotClusterTextAnnotation(e[!is.na(cl),], clust[mapping][!is.na(cl)], annotation)
+}
+
+plotDsASigLegend <- function(pval) {
+  pvalMod <- c(.5,.8,1,1.2,1.5)
+  pvalsG <- 1-c(rep(1,6), pval^(pvalMod))
+  pvalsL <- 1-c(pval^rev(pvalMod), rep(1,6))
+
+  pvss <- formatPVal(c(pval^rev(pvalMod),1,pval^pvalMod))
+  pvss <- paste0(c(rep("less, p=",5), "both p=", rep("more, p=",5)), pvss)
+
+  pow <- log(.5,1-pval)
+	colv.inconclusive <- col2rgb(rgb(.75, .75, .75))
+	colv.greater <- col2rgb(rgb(1, .5, 0))
+	colv.less <- col2rgb(rgb(0, .5, 1))
+  colv <- outer(pvalsG^pow, colv.greater) +
+    outer(pvalsL^pow, colv.less) +
+    outer(1-pvalsG^pow-pvalsL^pow, colv.inconclusive)
+	colv=colv[,,1]/255
+	colv[colv>1] <- 1 # fixup rounding errors that sometimes kill rgb()
+	colv[colv<0] <- 0
+	cs <- rgb(colv[,1], colv[,2], colv[,3])
+
+  plot(NULL, xaxt='n', yaxt='n', bty='n', xlab='', ylab='', xlim=0:1, ylim=0:1)
+  legend("topleft", legend=pvss, col=cs, pch=19)
 }

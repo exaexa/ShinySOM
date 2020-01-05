@@ -369,8 +369,8 @@ diffsomRenderAnalysis <- function(ds) {
   tabsetPanel(type='tabs',
     tabPanel('Cluster expressions', uiOutput('diffsomAnalysisExprs')),
     tabPanel('Cluster size heatmap', uiOutput('diffsomAnalysisHeatmap')),
-    tabPanel('Compare embedded files', uiOutput('diffsomAnalysisDiff')),
-    tabPanel('Significance plots', uiOutput('diffsomAnalysisSignificance'))
+    tabPanel('Population comparison', uiOutput('diffsomAnalysisDiff')),
+    tabPanel('Difference testing', uiOutput('diffsomAnalysisSignificance'))
   )
 }
 
@@ -475,8 +475,8 @@ diffsomRenderASignificance <- function(ds) {
     div("No data to plot. Embedding must be computed before displaying the differences.")
   else fluidRow(
     column(3,
-      tooltip("Significance plots give quick informative overview of statistically relevant changes in relative cell abundance in files for each population. The clusters of selected granularity are painted blue (if the selected experiment file group has significantly less cells than the control group) or orange (if it has significantly more cells).",
-      h2("Test population size difference")),
+      tooltip("This plot gives quick informative overview of statistically relevant changes in relative cell abundance in files for each population. The clusters of selected granularity are painted blue (if the selected experiment file group has significantly less cells than the control group) or orange (if it has significantly more cells).",
+      h2("Test population abundance differences")),
       tooltip("Samples that will be used as a baseline for testing.",
       pickerInput('dsASigControl',
         'Control sample group',
@@ -495,15 +495,17 @@ diffsomRenderASignificance <- function(ds) {
         selected='SOM',
         multiple=F)),
       tooltip("P-values obtained from testing are converted to color gradient; the selected value is put to around a half of the color scale. High selected p-values exaggerate any difference, producing colors for even relatively insignificant changes.",
-      sliderTextInput('dsASigPval', "P-value at 50% color", selected=0.05, choices=c(0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5), grid=T)),
+      sliderTextInput('dsASigPval', "P-value at 50% color", selected=0.05,
+                      choices=c(0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5),
+                      grid=T)),
       sliderPointSize('dsASigCex'),
       sliderAlpha('dsASigAlpha')
     ),
-    column(9,
-      plotOutput('plotDsASig', width='50em', height='50em'),
-      p('Blue = significantly less cells in experiment group.'),
-      p('Orange = significantly more cells in experiment group.'),
-      p('Gray = no significant result.')
+    column(6,
+      plotOutput('plotDsASig', width='50em', height='50em')
+    ),
+    column(3,
+      plotOutput('plotDsASigLegend', width='100%')
     )
   )
 }
@@ -878,6 +880,10 @@ serveDiffsom <- function(ws, ds, input, output, session) {
         input$dsASigPval,
         input$dsASigCex,
         input$dsASigAlpha)
+  })
+
+  output$plotDsASigLegend <- renderPlot({
+    plotDsASigLegend(input$dsASigPval)
   })
 
   #
