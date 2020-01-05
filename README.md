@@ -91,6 +91,16 @@ Analysis results are exported to the server side of the application. You may dow
 
 If ShinySOM does something unexpected or crashes (Shiny application crashes are presented by sudden graying of the screen), feel free to use the [GitLab issue tracker](https://gitlab.com/exaexa/ShinySOM/issues) to report what went wrong. Please include a reproducible description of how to trigger the problem in the report, including the OS used to run ShinySOM and the browser used for viewing the interface. Properly reported bugs may be fixed in several hours.
 
+### Data upload fails for me, how can I fix it?
+
+File size limit is a common problem with uploading files to Shiny. If uploads of large files fail, you can push the default 5MB limit by running this command before starting ShinySOM:
+
+```r
+options(shiny.maxRequestSize = 200*1024^2)    # increases the upload limit to 200MB
+```
+
+The other common cause is that the scratch-space given to ShinySOM (`data` directory) is not writable. In that case, simply fix the filesystem permissions, e.g. using `chmod`.
+
 ### Is ShinySOM suitable for producing graphics for publication?
 
 Not directly -- all visualisations in ShinySOM are optimized for on-screen viewing only. You can get high-quality prints of any produced data using the standard R tools (e.g. `ggplot`); an example of that is available in [the tutorial](TUTORIAL.md).
