@@ -81,7 +81,7 @@ plotDsASigLegend <- function(pval) {
   pvalsL <- 1-c(pval^rev(pvalMod), rep(1,6))
 
   pvss <- formatPVal(c(pval^rev(pvalMod),1,pval^pvalMod))
-  pvss <- paste0(c(rep("less, p=",5), "both p=", rep("more, p=",5)), pvss)
+  pvss <- paste0(c(rep("decrease, p=",5), "both p=", rep("increase, p=",5)), pvss)
 
   pow <- log(.5,1-pval)
 	colv.inconclusive <- col2rgb(rgb(.75, .75, .75))
@@ -95,6 +95,8 @@ plotDsASigLegend <- function(pval) {
 	colv[colv<0] <- 0
 	cs <- rgb(colv[,1], colv[,2], colv[,3])
 
+  par(mar=c(0,0,1,0))
   plot(NULL, xaxt='n', yaxt='n', bty='n', xlab='', ylab='', xlim=0:1, ylim=0:1)
   legend("topleft", legend=pvss, col=cs, pch=19)
+  mtext("Mann-Whitney test outcome", adj=0)
 }
