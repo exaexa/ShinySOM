@@ -367,9 +367,9 @@ diffsomRenderClusterEmbedding <- function(ds) {
 
 diffsomRenderAnalysis <- function(ds) {
   tabsetPanel(type='tabs',
-    tabPanel('Cluster expressions', uiOutput('diffsomAnalysisExprs')),
-    tabPanel('Cluster size heatmap', uiOutput('diffsomAnalysisHeatmap')),
-    tabPanel('Population comparison', uiOutput('diffsomAnalysisDiff')),
+    tabPanel('Marker expressions', uiOutput('diffsomAnalysisExprs')),
+    tabPanel('Population sizes', uiOutput('diffsomAnalysisPopSizes')),
+    tabPanel('Side-by-side comparison', uiOutput('diffsomAnalysisDiff')),
     tabPanel('Difference testing', uiOutput('diffsomAnalysisSignificance'))
   )
 }
@@ -381,7 +381,7 @@ diffsomRenderAExprs <- function(ds) {
   clust <- clust[!is.na(clust)]
   fluidRow(
     column(3,
-      tooltip("Heatmap shows relative amount of population cells in the files. The data is converted to percentages for each file, then normalized again for populations to allow comparison.",
+      tooltip("This displays expression profiles of selected populations in different files. That may be used e.g. to examine various cell activation states -- cluster the cells by lineage markers first, and view the activation markers using this interface.",
       h2("Expressions in clusters")),
       tooltip("Selected files will be visually separated from the rest",
       pickerInput('dsAExprsFiles',
@@ -420,14 +420,22 @@ diffsomRenderAExprsPlot <- function(ds, input) {
   )
 }
 
-diffsomRenderAHeat <- function(ds) {
-  div(
-    tooltip("Heatmap shows relative amount of population cells in the files. The data is converted to percentages for each file, then normalized again for populations to allow comparison.",
-    h2("Relative cell count heatmap")),
-    if(is.null(ds$clust) || nlevels(factor(ds$clust))<1 || nlevels(factor(ds$files)) <= 1)
-      div("Not enough data for the plot. Heatmap output requires at least 2 files and one annotated cell population.")
-    else
-      plotOutput('plotDsAHeat', width='100%', height='65em')
+diffsomRenderAPopSizes <- function(ds) {
+  fluidRow(
+    column(3,
+      tooltip("This view shows relative amount of population cells in the files. The data is converted to compositions to allow comparison.",
+      h2("Relative cell abundances")),
+      pickerInput('dsAPSClusters',
+        'Populations to compare',
+        choices=namesInvert(ds$annotation),
+        multiple=T,
+        options=list(`actions-box`=T, size=10)),
+      checkboxInput('dsAPSReorder', "Reorder by similarity", value = FALSE),
+      plotOutput('plotDsAPopLegend', width='100%', height=paste0(4+length(ds$annotation)*2, 'em'))
+    ),
+    column(9,
+      plotOutput('plotDsAPopSizes', width='100%', height='40em')
+    )
   )
 }
 
@@ -804,8 +812,8 @@ serveDiffsom <- function(ws, ds, input, output, session) {
     diffsomRenderAExprs(ds)
   )
 
-  output$diffsomAnalysisHeatmap <- renderUI(
-    diffsomRenderAHeat(ds)
+  output$diffsomAnalysisPopSizes <- renderUI(
+    diffsomRenderAPopSizes(ds)
   )
 
   output$diffsomAnalysisDiff <- renderUI(
@@ -833,15 +841,21 @@ serveDiffsom <- function(ws, ds, input, output, session) {
     )
   )
 
-  output$plotDsAHeat <- renderPlot(
-    if(!is.null(ds$clust) && length(levels(factor(ds$clust)))>0) {
-      plotDsAHeat(
+  output$plotDsAPopSizes <- renderPlot(
+    if(!is.null(ds$clust) && length(levels(factor(ds$clust)))>0 && length(input$dsAPSClusters)>0)
+      plotDsAPopSizes(
         ds$clust[ds$map$mapping[,1]],
         ds$annotation,
         ds$cellFile,
-        ds$files
+        ds$files,
+        input$dsAPSClusters,
+        input$dsAPSReorder
       )
-    }
+  )
+
+  output$plotDsAPopLegend <- renderPlot(
+    if(!is.null(ds$clust))
+      plotDsAPopLegend(ds$clust, ds$annotation, input$dsAPSClusters)
   )
 
   output$plotDsADiffL <- renderPlot({

@@ -98,5 +98,5 @@ plotDsASigLegend <- function(pval) {
   par(mar=c(0,0,1,0))
   plot(NULL, xaxt='n', yaxt='n', bty='n', xlab='', ylab='', xlim=0:1, ylim=0:1)
   legend("topleft", legend=pvss, col=cs, pch=19)
-  mtext("Mann-Whitney test outcome", adj=0)
+  mtext("Wilcoxon signed-rank test outcome", adj=0)
 }
