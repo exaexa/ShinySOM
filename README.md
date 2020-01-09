@@ -8,7 +8,7 @@ The docker image with ShinySOM can be downloaded and started as such:
 
 ```sh
 docker pull exaexa/shinysom:latest
-docker run -d -p 8080:8080 -t exaexa/shinysom
+docker run -d -t -p 8080:8080 exaexa/shinysom
 ```
 
 After that, type [localhost:8080](http://localhost:8080/) into your web browser. If everything went right, you should be able to see and use a working ShinySOM installation.
@@ -34,14 +34,7 @@ devtools::install_github('exaexa/shinyDendro')
 devtools::install_gitlab('exaexa/ShinySOM')
 ```
 
-You may want to check the versions of `shiny` and `htmlwidgets`, as the older versions may contain issues that prevent e.g. the clustering interface from working correctly. Make sure the versions are reasonably up-to-date. Specifically, _avoid_ combining `shiny-1.3.2` with `htmlwidgets-1.5`.
-
-```
-> packageVersion('shiny')
-[1] ‘1.4.0’
-> packageVersion('htmlwidgets')
-[1] ‘1.5’
-```
+If you encounter any problem during the installation, check the "Troubleshooting" section below.
 
 ### Starting the manually installed ShinySOM
 
@@ -77,7 +70,7 @@ Generally, ShinySOM attempts to mimic most of the methodology used with FlowSOM;
 
 There is also a [separate tutorial](TUTORIAL.md) that shows the most common features on an example dataset.
 
-## FAQs and common issues
+## Frequently Asked&Answered Questions (FAQ)
 
 ### Will ShinySOM help me with compensating the acquired samples?
 
@@ -86,6 +79,30 @@ No, ShinySOM focuses on multidimensional analysis of the data, compensation and 
 ### I want to export the analysis results, but clicking the buttons does not start any download. Why?
 
 Analysis results are exported to the server side of the application. You may download it from the data transfer interface, accessible by clicking the "Upload/download data" button in the top bar.
+
+### Is ShinySOM suitable for producing graphics for publication?
+
+Not directly -- all visualisations in ShinySOM are optimized for on-screen viewing only. You can get high-quality prints of any produced data using the standard R tools (e.g. `ggplot`); an example of that is available in [the tutorial](TUTORIAL.md).
+
+### Where is the FlowSOM metaclustering and Consensus clustering?
+
+FlowSOM-style metaclustering is perhaps the most noticeable part of FlowSOM workflow that we have modified. There has been a lot of discussion (most recently by [Pedersen&Olsen in Cytometry A](https://onlinelibrary.wiley.com/doi/full/10.1002/cyto.a.23917)) about how the unsupervised clustering output does not really match many biologically relevant expectations. ShinySOM tries to avoid this "algorithmic bias" by using the [idendro-style](https://github.com/tsieger/idendro) clustering tool ([shinyDendro](https://github.com/exaexa/shinyDendro)), that:
+
+- gives the scientist a very fast way to select the well-separated clusters detected by FlowSOM by a simple mouse click,
+- at the same time, allows him to precisely observe and quickly correct deficiencies in the detected data structure (again using just a few mouse clicks),
+- avoids many anti-intuitive properties of the clustering algorithms, such as the selection of cluster number, and appearance of clusters of "uncategorizable" data.
+
+### Is there any support for the more common embedding algorithms, like tSNE, UMAP or trimap?
+
+In the interactive environment, the used visualization&embedding method is required to be very fast in order to be useful. We currently use EmbedSOM, because it can deliver a good embedding in several seconds (moreover, the SOM computation is shared with clustering). On the contrary, tSNE and UMAP usually take several minutes even on relatively small datasets.
+
+Outside of ShinySOM, you may apply any dimensionality reduction algorithm to the data in an exported dataset. You can use e.g. the `ExportDF` function from the API to get the raw cell expression data in datasets, which can be used as input of tSNE or UMAP. (See the tutorial for more information on API use.)
+
+### How to turn on the SIMD support?
+
+You need EmbedSOM installation compiled with the matching compiler flags; ShinySOM will automatically use the result. See [EmbedSOM documentation](https://github.com/exaexa/EmbedSOM) for details. The expected speedup of SOM building and embedding ranges between 3x and 20x, usually around 5x.
+
+## Troubleshooting
 
 ### I found a bug, what to do now?
 
@@ -101,24 +118,36 @@ options(shiny.maxRequestSize = 200*1024^2)    # increases the upload limit to 20
 
 The other common cause is that the scratch-space given to ShinySOM (`data` directory) is not writable. In that case, simply fix the filesystem permissions, e.g. using `chmod`.
 
-### Is ShinySOM suitable for producing graphics for publication?
+### The dendrogram-based clustering tool (shinyDendro) does not appear / does not work
 
-Not directly -- all visualisations in ShinySOM are optimized for on-screen viewing only. You can get high-quality prints of any produced data using the standard R tools (e.g. `ggplot`); an example of that is available in [the tutorial](TUTORIAL.md).
+You may want to check the versions of `shiny` and `htmlwidgets`, as the older versions may contain issues that prevent the clustering interface from working correctly. Make sure the versions are reasonably up-to-date. Specifically, _avoid_ combining `shiny-1.3.2` with `htmlwidgets-1.5`.
 
-### Where is the FlowSOM metaclustering and Consensus clustering?
+```
+> packageVersion('shiny')
+[1] ‘1.4.0’
+> packageVersion('htmlwidgets')
+[1] ‘1.5’
+```
 
-FlowSOM-style metaclustering is perhaps the most noticeable part of FlowSOM workflow that we have modified. There has been a lot of discussion (most recently by [Pedersen&Olsen in Cytometry A](https://onlinelibrary.wiley.com/doi/full/10.1002/cyto.a.23917)) about how the computational clustering output does not really match many biologically relevant expectations. ShinySOM tries to avoid this "algorithmic bias" by using the [idendro-style](https://github.com/tsieger/idendro) clustering tool ([shinyDendro](https://github.com/exaexa/shinyDendro)), that:
+### Docker image does not work on my platform
 
-- gives the scientist a very fast way to select the well-separated clusters detected by FlowSOM by a simple mouse click,
-- at the same time, allows him to precisely observe and quickly correct deficiencies in the detected data structure (again using just a few mouse clicks),
-- avoids many anti-intuitive properties of the clustering algorithms, such as the selection of cluster number, and appearance of clusters of "uncategorizable" data.
+There are minor compatibility issues e.g. with the `flowCore` library that happen when running a Docker container built on a different platform or with a different kernel. In all cases, you should be able to create a compatible container by building it from the Dockerfile, which resides on GitHub:
 
-### Is there any support for the more common embedding algorithms, like tSNE, UMAP or trimap?
+```sh
+git clone https://github.com/exaexa/docker-shinysom.git
+cd docker-shinysom
+docker build -t shinysom .
+```
 
-In the interactive environment, the used visualization&embedding method is required to be very fast in order to be useful. We currently use EmbedSOM, because it can deliver a good embedding in several seconds (moreover, the SOM computation is shared with clustering). On the contrary, tSNE and UMAP usually take several minutes even on relatively small datasets.
+After that, use `shinysom` image for starting the container, as in
+```sh
+docker run -d -t -p 8080:8080 shinysom
+```
 
-Outside of ShinySOM, you may apply any dimensionality reduction algorithm to the data in an exported dataset. You can use e.g. the `ExportDF` function from the API to get the raw cell expression data in datasets, which can be used as input of tSNE or UMAP. (See the tutorial for more information on API use.)
 
-### How to turn on the SIMD support?
+### Manual installation fails to install the dependencies
 
-You need EmbedSOM installation compiled with the matching compiler flags; ShinySOM will automatically use the result. See [EmbedSOM documentation](https://github.com/exaexa/EmbedSOM) for details. The expected speedup of SOM building and embedding ranges between 3x and 20x, usually around 5x.
+Several dependencies of ShinySOM use C code, which may be complicated to build correctly on certain systems. Although we have put a lot of effort into fixing the possible incompatibilities, some of these may happen on non-standard or older systems. In particular:
+
+- Installation of `mhca` may fail with a message about unresolved symbol `dpotrf_`. That is caused by incomplete or corrupted installation of R and its dependencies on the system. On most systems, the issue can be solved by installing OpenBLAS library development-support, e.g. packages `libopenblas-dev` or `libopenblas64-dev` on debian-derived linux distributions. If you have configured and compiled R yourself, make sure you have enabled the OpenBLAS support when running `./configure`, usually with config options `--with-lapack --with-blas`.
+- Source code of `EmbedSOM` depends on relatively new C++ features. If compilation of EmbedSOM fails, upgrade your compiler. We recommend using either GCC of version at least 9.2, or Clang of version at least 8.
