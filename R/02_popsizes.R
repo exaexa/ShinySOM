@@ -14,7 +14,11 @@ plotDsAPopSizes <- function(clust, annotation, cellFile, files, showClusters, do
   showIds <- findColIds(showClusters, levels(cl))
   probs <- probs[showIds,,drop=F]
 
-  probs <- apply(probs, 2, function(v) {s <- sum(v); if(s>0) v/s else v;})
+  # this would be nice to express cleanly using just apply(),
+  # unfortunately apply() coerces single-row matrices to vectors. :(
+  if(nrow(probs)>1)
+    probs <- apply(probs, 2, function(v) {s <- sum(v); if(s>0) v/s else v;})
+  else probs[,] <- 1
 
   if(doReorder && nrow(probs)>1)
     probs <- probs[,hclust(dist(t(probs), method='manhattan'))$order,drop=F]
