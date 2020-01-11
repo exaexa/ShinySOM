@@ -499,7 +499,7 @@ diffsomRenderASignificance <- function(ds) {
       selectInput('dsASigGran', label='Granularity',
         choices=c(
           'SOM',
-          if(is.null(ds$clust)) NULL else 'Clusters'),
+          if(is.null(ds$annotation) || length(ds$annotation)==0) NULL else 'Clusters'),
         selected='SOM',
         multiple=F)),
       tooltip("P-values obtained from testing are converted to color gradient; the selected value is put to around a half of the color scale. High selected p-values exaggerate any difference, producing colors for even relatively insignificant changes.",

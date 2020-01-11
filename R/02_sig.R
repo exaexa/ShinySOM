@@ -29,13 +29,13 @@ plotDsASig <- function(control, experiment, files, cellFile, e,
     probsE[i,] <- pad.zero(tabulate(cl[cellFile==expID[i]]),ncl)/sum(cellFile==expID[i])
 
 
-  suppressWarnings(po_less <- sapply(1:ncl, function(i)
+  suppressWarnings(po_less <- sapply(seq_len(ncl), function(i)
     wilcox.test(
 			probsE[,i],
 			probsC[,i],
 			alternative='less',
 			paired=F)$p.value))
-  suppressWarnings(po_greater <- sapply(1:ncl, function(i)
+  suppressWarnings(po_greater <- sapply(seq_len(ncl), function(i)
    wilcox.test(
 			probsE[,i],
 			probsC[,i],
@@ -63,7 +63,7 @@ plotDsASig <- function(control, experiment, files, cellFile, e,
 
   par(mar=c(0,0,0,0))
   EmbedSOM::PlotEmbed(e[!is.na(cl),], col=colors, alpha=alpha, cex=cex, plotf=scattermoreplot, frame.plot=F)
-  for(i in 1:ncl) {
+  for(i in seq_len(ncl)) {
     ai <- cllevs[i]
     if(ai %in% names(annotation)) {
       if(po_greater[i]<sqrt(pval))
