@@ -19,8 +19,7 @@ plotDsADiff <- function(fns, color, files, data, cellFile, e, prettyColnames, cl
 
     EmbedSOM::PlotEmbed(
       e[filter,],
-      clust=as.numeric(cl)[filter],
-      nclust=nlevels(cl),
+      clust=cl[filter],
       plotf=scattermoreplot,
       cex=cex,
       alpha=alpha,
@@ -32,8 +31,7 @@ plotDsADiff <- function(fns, color, files, data, cellFile, e, prettyColnames, cl
     file <- factor(cellFile)
     EmbedSOM::PlotEmbed(
       e[filter,],
-      clust=as.numeric(file)[filter],
-      nclust=nlevels(file),
+      clust=file[filter],
       plotf=scattermoreplot,
       cex=cex,
       alpha=alpha,
