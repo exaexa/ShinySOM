@@ -85,7 +85,13 @@ ShinySOM <- function(
   if(!all(dir.exists(roots))) stop("Some of the storage root directories do not exist!")
   options(ShinySOM.Datasets=paste0(dataset.dir, '/'))
   options(ShinySOM.foreignRoots=roots)
-  options(shiny.maxRequestSize=100*2^20)
+
+  # set sensible defaults
+  if(is.null(options()$shiny.maxRequestSize))
+    options(shiny.maxRequestSize=100*2^20)
+  if(is.null(options()$ShinySOM.threads))
+    options(ShinySOM.threads=1)
+
   shinyApp(ui=ui, server=server, ...)
 }
 

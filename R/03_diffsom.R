@@ -638,7 +638,9 @@ serveDiffsom <- function(ws, ds, input, output, session) {
       negAlpha=0, #is any parametrization of this viable?
       negRadius=1,
       distf=distf,
-      nhbr.method=nhbr.method)
+      nhbr.method=nhbr.method,
+      batch=options()$ShinySOM.threads != 1,
+      threads=options()$ShinySOM.threads)
     ds$e <- NULL
     ds$clust <- rep(NA, dim(ds$map$codes)[1])
     ds$hclust <- NULL
@@ -681,7 +683,8 @@ serveDiffsom <- function(ws, ds, input, output, session) {
         smooth=ds$smooth,
         adjust=ds$adjust,
         k=ds$k,
-        emcoords=ds$emcoords)
+        emcoords=ds$emcoords,
+        threads=options()$ShinySOM.threads)
       showNotification(type='message', "Embedding ready.")
     } else
       showNotification(type='warning', "SOM is not computed yet!")
