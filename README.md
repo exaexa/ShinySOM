@@ -89,7 +89,7 @@ Not directly -- all visualisations in ShinySOM are optimized for on-screen viewi
 FlowSOM-style metaclustering is perhaps the most noticeable part of FlowSOM workflow that we have modified. There has been a lot of discussion (most recently by [Pedersen&Olsen in Cytometry A](https://onlinelibrary.wiley.com/doi/full/10.1002/cyto.a.23917)) about how the unsupervised clustering output does not really match many biologically relevant expectations. ShinySOM tries to avoid this "algorithmic bias" by using the [idendro-style](https://github.com/tsieger/idendro) clustering tool ([shinyDendro](https://github.com/exaexa/shinyDendro)), that:
 
 - gives the scientist a very fast way to select the well-separated clusters detected by FlowSOM by a simple mouse click,
-- at the same time, allows him to precisely observe and quickly correct deficiencies in the detected data structure (again using just a few mouse clicks),
+- at the same time, allows to precisely observe and quickly correct deficiencies in the selected population (again using just a few mouse clicks),
 - avoids many anti-intuitive properties of the clustering algorithms, such as the selection of cluster number, and appearance of clusters of "uncategorizable" data.
 
 ### Is there any support for the more common embedding algorithms, like tSNE, UMAP or trimap?
