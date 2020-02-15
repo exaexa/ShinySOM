@@ -43,17 +43,20 @@ temporary files, datasets, ...). For simplicity, we assume that the code is run
 on a Unix version of R (e.g. Linux or BSD), but the code should be transferable
 to non-Unix operating systems as well with only minor changes to file naming.
 
-Basically, you need to switch to the scratch-space directory and create the
-directories, if they do not exist:
+Basically, you need to create several scratch-space directories, if they do not
+exist:
 
 ```r
-setwd('/some/directory/you/want/for/shinysom/')   # fill this in
+shinysom.dir <- 'ShinySOM_server_data' # If needed, choose a different directory name here!
+dir.create(shinysom.dir)
+setwd(shinysom.dir)
 dir.create('data')      # scratch space for the user files
 dir.create('datasets')  # dataset storage
 ```
 
-(The locations are configurable, as a parameters of `ShinySOM()` function below.
-The displayed directory names match the defaults.)
+(The locations of `data` and `datasets` directory are configurable, as a
+parameters of `ShinySOM()` function below. The directory names in the example
+match the defaults.)
 
 After that, you may start ShinySOM:
 
