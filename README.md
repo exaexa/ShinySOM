@@ -77,7 +77,7 @@ There is also a [separate tutorial](TUTORIAL.md) that shows the most common feat
 
 ### Will ShinySOM help me with compensating the acquired samples?
 
-No, ShinySOM focuses on multidimensional analysis of the data, compensation and quality-control of the samples is out of its scope. Please use the software supplied by your cytometer manufacturer for compensating the data. You may also try [FlowAI](https://bioconductor.org/packages/release/bioc/html/flowAI.html), [CytoRSuite](https://github.com/DillonHammill/CytoRSuite) and [Catalyst](https://github.com/HelenaLC/CATALYST) that contain viable tools for cleaning and re-compensating the samples.
+No, ShinySOM focuses on multidimensional analysis of the data, compensation and quality-control of the samples is out of its scope. Please use the software supplied by your cytometer manufacturer for compensating the data. You may also try [FlowAI](https://bioconductor.org/packages/release/bioc/html/flowAI.html), [CytoExploreR](https://dillonhammill.github.io/CytoExploreR/), [CytoRSuite](https://github.com/DillonHammill/CytoRSuite), and [Catalyst](https://github.com/HelenaLC/CATALYST) that contain viable tools for cleaning and re-compensating the samples.
 
 ### I want to export the analysis results, but clicking the buttons does not start any download. Why?
 
