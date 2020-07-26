@@ -158,3 +158,15 @@ Several dependencies of ShinySOM use C code, which may be complicated to build c
 
 - Installation of `mhca` may fail with a message about unresolved symbol `dpotrf_`. That is caused by incomplete or corrupted installation of R and its dependencies on the system. On most systems, the issue can be solved by installing OpenBLAS library development-support, e.g. packages `libopenblas-dev` or `libopenblas64-dev` on debian-derived linux distributions. If you have configured and compiled R yourself, make sure you have enabled the OpenBLAS support when running `./configure`, usually with config options `--with-lapack --with-blas`.
 - Source code of `EmbedSOM` depends on relatively new C++ features. If compilation of EmbedSOM fails, upgrade your compiler. We recommend using either GCC of version at least 9.2, or Clang of version at least 8.
+
+### Plots look choppy/fuzzy
+### Scatterplots are plotted on black background and the cells are not visible
+
+To produce reasonably nice output, ShinySOM requires a graphical device that supports antialiasing and transparency. You may want to default all plotting to the Cairo renderer, which is sufficiently fast and supports all the required features:
+
+```r
+options(bitmapType='cairo')
+grDevices::X11.options(type='cairo')   # optional
+```
+
+(This is best placed right into the `.Rprofile` file in your home directory.)
